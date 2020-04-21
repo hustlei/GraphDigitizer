@@ -1,39 +1,13 @@
-from enum import Enum,unique
 from PyQt5.QtWidgets import QApplication,QGraphicsScene,QGraphicsView,QGraphicsRectItem,QMainWindow,QLabel,QGraphicsItem,QGraphicsEllipseItem
 from PyQt5.QtCore import Qt,pyqtSignal,QPoint,QRectF
 from PyQt5.QtGui import QPen, QPainterPath
+from .enums import PointType
 
-@unique
-class PointType(Enum):
-    none = 0 # None
-    point = 1 # 点 .
-    bigpoint = 2 # ●
-    plus = 3 # +
-    minus = 4 # -
-    vertical = 5 # |
-    cross = 6# x
-    star = 7 # 米
-    crossvertical = 8 # x | 结合
-    squre = 9 # ■
-    prism = 10 # ■ 转45°
-    trangle = 11 #▲
-    circle = 12 # O
-    
-    pointincircle = 21# . in o
-    plusincircle = 22# + in O
-    crossincircle = 23# x in O
-    pluswithcircle = 24
-    crosswithcircle = 25
-    # . in □
-    # + in □
-    # x in □
-    
-        
 class QGraphicsPointItem(QGraphicsItem):
     """Item for point
     including kinds of point type, such as x o + · ect.
     and size can be changed."""
-    def __init__(self, width=20, height=20, linewidth=2):
+    def __init__(self, width=20, height=20, linewidth=1):
         super().__init__()
         self.pointType = PointType.crosswithcircle
         self.pointSize = (width, height)

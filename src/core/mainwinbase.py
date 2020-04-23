@@ -13,9 +13,6 @@ from res import img_rc
 class MainWinBase(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setupUi()
-
-    def setupUi(self):
         self.resize(1024, 720)
         self.menubar = self.menuBar()
         self.statusbar = self.statusBar()
@@ -258,6 +255,7 @@ class MainWinBase(QMainWindow):
         self.themeCombo.currentTextChanged.connect(qApp.setStyle)
 
 
+    ## misc func
     def updatePixelCoord(self, ptorx, y=None):
         if isinstance(ptorx, QPoint) or isinstance(ptorx, QPointF):
             self.status["pixel"].setText("Pixel Coordinate: {},{}".format(ptorx.x(), ptorx.y()))

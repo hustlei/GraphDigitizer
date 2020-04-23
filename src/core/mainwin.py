@@ -1,3 +1,7 @@
+import os
+
+from PyQt5.QtWidgets import QFileDialog
+
 from core.graphicsView import GraphDigitGraphicsView
 from .mainwinbase import MainWinBase
 
@@ -5,14 +9,47 @@ from .mainwinbase import MainWinBase
 class MainWin(MainWinBase):
     def __init__(self):
         super(MainWin, self).__init__()
-
         # 图形控件
         self.view = GraphDigitGraphicsView()  # 创建视图窗口
         self.mainTabWidget.addTab(self.view, "main")
-        self.view.graphicsPixmapItem.setPixmap(self.view.datas.img)
-        self.view.scene.clearSelection()  # 【清除选择】
+
+        #actions
         self.view.sigMouseMovePoint.connect(self.slotMouseMovePoint)
+        self.setupActions()
 
     def slotMouseMovePoint(self, pt, ptscene):
         self.updatePixelCoord(pt.x(), pt.y())
         self.updatePointCoord(ptscene)
+
+    ## action funcs
+    def new(self):
+        """create new GraphDigitGrapicsView"""
+        self.view = GraphDigitGraphicsView()
+
+    def importimage(self, file=None):  # _参数用于接收action的event参数,bool类型
+        if not file:
+            file, _ = QFileDialog.getOpenFileName(
+                self, self.tr("Import Image"), "",
+                "Images (*.png *.jpg *.jpep *.gif);;Bitmap Image(*.bmp *.xpm *.xbm *.pbm *.pgm);;all(*.*)")  # _是filefilter
+        if os.path.exists(file):
+            self.statusbar.showMessage(self.tr("importing image..."))
+            ok = self.view.setGraphImage(file)
+            if ok:
+                self.statusbar.showMessage(self.tr("import successfully"))
+            else:
+                self.statusbar.showMessage(self.tr("import failed"))
+        else:
+            self.statusbar.showMessage(self.tr("image file not found."))
+
+
+    def zoom(self, factor=1):
+        self.view.scale(factor, factor)
+
+    def tst(self):
+        print("test")
+
+    def setupActions(self):
+        self.actions["import"].triggered.connect(self.importimage)
+        self.actions["close"].triggered.connect(self.new)
+        self.actions["zoomin"].triggered.connect(lambda :self.zoom(1.1))
+        self.actions["zoomout"].triggered.connect(lambda :self.zoom(0.9))

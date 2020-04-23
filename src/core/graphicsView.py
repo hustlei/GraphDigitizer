@@ -1,3 +1,5 @@
+import os
+
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt
 from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem, QGraphicsItem, \
     QGraphicsEllipseItem
@@ -25,7 +27,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.currentCurve = 'default'
         self.mode = OpMode.pointmode
         #test
-        self.datas.setImgpath(r"C:\Users\lei\Desktop\1.png")
 
         # for pos,color in zip([rect.left(),0,rect.right()],[Qt.red,Qt.yellow,Qt.blue]):
         #     item=QGraphicsEllipseItem(-50,-50,100,100)  #创建椭圆--场景坐标
@@ -35,6 +36,15 @@ class GraphDigitGraphicsView(QGraphicsView):
         #     item.setBrush(color)  #设置画刷
         #     item.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable|QGraphicsItem.ItemIsMovable)
         #     self.scene.addItem(item)
+
+    def setGraphImage(self, imgfile):
+        if os.path.exists(imgfile):
+            self.datas.setImgpath(imgfile)
+            self.graphicsPixmapItem.setPixmap(self.datas.img)
+            self.scene.clearSelection()  # 【清除选择】
+            return True
+        else:
+            return False
 
     def mouseMoveEvent(self, evt):
         pt = evt.pos()  # 获取鼠标坐标--view坐标

@@ -2,6 +2,15 @@
 from enum import Enum,unique
 
 @unique
+class OpMode(Enum):
+    """current mode such as: draw point, move point, move scene etc."""
+    default = 0
+    selectmode = 1
+    axismode = 2
+    pointmode = 3
+    curvemode = 4
+
+@unique
 class PointType(Enum):
     none = 0  # None
     point = 1  # 点 .

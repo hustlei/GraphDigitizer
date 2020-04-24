@@ -96,11 +96,13 @@ class MainWinBase(QMainWindow):
         self.actions["zoomout"] = createAct(self.tr("&ZoomOut"), self.tr("Zoom Out"), "Ctrl+-",
                                             ':appres.img/zoomout.png')
         self.actions["select"] = createAct(self.tr("Select Mode"), self.tr("Select Mode"), None,
-                                           ':appres.img/select.png')
+                                           ':appres.img/select.png', checkable=True)
         self.actions["axes"] = createAct(self.tr("Set &Axes points"), self.tr("Set Axes Points"), None,
-                                         ':appres.img/axes.png')
-        self.actions["grid"] = createAct(self.tr("Axes &Grid"), self.tr("Show AxesGrid"), None, ':appres.img/grid.png')
-        self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png')
+                                         ':appres.img/axes.png', checkable=True)
+        self.actions["grid"] = createAct(self.tr("Axes &Grid"), self.tr("Show AxesGrid"), None, ':appres.img/grid.png',
+                                         checkable=True)
+        self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png',
+                                          checkable=True)
 
         # self.actions["DisableQss"] = createAct(self.tr("&DisableQss"), self.tr("DisableQss"), checkable=True)
         # self.actions["DisableQss"].setChecked(False)
@@ -235,7 +237,7 @@ class MainWinBase(QMainWindow):
         self.status["pixel"] = QLabel(self.tr("Pixel Location: 0,0"))
         self.status["point"].setMinimumWidth(200)
         self.status["pixel"].setMinimumWidth(200)
-        #self.status["coding"].setAlignment(Qt.AlignCenter)
+        # self.status["coding"].setAlignment(Qt.AlignCenter)
         self.statusbar.addPermanentWidget(self.status["point"])
         self.statusbar.addPermanentWidget(self.status["pixel"])
 
@@ -253,7 +255,6 @@ class MainWinBase(QMainWindow):
     def setupUiActions(self):
         self.actions["showcurves"].triggered.connect(self.docks["curves"].setVisible)
         self.themeCombo.currentTextChanged.connect(qApp.setStyle)
-
 
     ## misc func
     def updatePixelCoord(self, ptorx, y=None):

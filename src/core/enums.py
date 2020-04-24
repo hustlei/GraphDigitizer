@@ -4,11 +4,11 @@ from enum import Enum,unique
 @unique
 class OpMode(Enum):
     """current mode such as: draw point, move point, move scene etc."""
-    default = 0
-    selectmode = 1
-    axismode = 2
-    pointmode = 3
-    curvemode = 4
+    default = "default"
+    select = "select"
+    axes = "axes"
+    grid = "grid"
+    curve = "curve"
 
 @unique
 class PointType(Enum):

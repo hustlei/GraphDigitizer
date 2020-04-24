@@ -3,6 +3,7 @@ import os
 from PyQt5.QtWidgets import QFileDialog
 
 from core.graphicsView import GraphDigitGraphicsView
+from .enums import OpMode
 from .mainwinbase import MainWinBase
 
 
@@ -45,11 +46,26 @@ class MainWin(MainWinBase):
     def zoom(self, factor=1):
         self.view.scale(factor, factor)
 
+    def setMode(self, mode, checked):
+        if not checked:
+            self.view.mode = OpMode.default
+        else:
+            lastmode = self.view.mode
+            self.view.mode = mode
+            if lastmode != OpMode.default:
+                self.actions[lastmode.name].setChecked(False)
+
     def tst(self):
         print("test")
 
     def setupActions(self):
         self.actions["import"].triggered.connect(self.importimage)
         self.actions["close"].triggered.connect(self.new)
+
+        self.actions["select"].triggered.connect(lambda x:self.setMode(OpMode.select, x))
+        self.actions["axes"].triggered.connect(lambda x:self.setMode(OpMode.axes, x))
+        self.actions["grid"].triggered.connect(lambda x:self.setMode(OpMode.grid, x))
+        self.actions["curve"].triggered.connect(lambda x:self.setMode(OpMode.curve, x))
+
         self.actions["zoomin"].triggered.connect(lambda :self.zoom(1.1))
         self.actions["zoomout"].triggered.connect(lambda :self.zoom(0.9))

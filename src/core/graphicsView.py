@@ -25,7 +25,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         # data manage
         self.datas = Datas()
         self.currentCurve = 'default'
-        self.mode = OpMode.pointmode
+        self.mode = OpMode.default
         #test
 
         # for pos,color in zip([rect.left(),0,rect.right()],[Qt.red,Qt.yellow,Qt.blue]):
@@ -61,7 +61,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         ptscene = self.mapToScene(event.pos())
         # item = self.scene.itemAt(ptscene, self.transform())
         clicked = True if event.pos() == self.__pressPt else False
-        if self.mode is OpMode.selectmode:
+        if self.mode is OpMode.select:
             pass
         elif self.mode is OpMode.pointmode and clicked:
             item = QGraphicsPointItem()

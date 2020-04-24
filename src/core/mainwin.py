@@ -1,5 +1,6 @@
 import os
 
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog
 
 from core.graphicsView import GraphDigitGraphicsView
@@ -54,6 +55,10 @@ class MainWin(MainWinBase):
             self.view.mode = mode
             if lastmode != OpMode.default:
                 self.actions[lastmode.name].setChecked(False)
+        if self.view.mode == OpMode.default or self.view.mode == OpMode.select:
+            self.view.setCursor(Qt.ArrowCursor)
+        else:
+            self.view.setCursor(Qt.CrossCursor)
 
     def tst(self):
         print("test")
@@ -64,8 +69,11 @@ class MainWin(MainWinBase):
 
         self.actions["select"].triggered.connect(lambda x:self.setMode(OpMode.select, x))
         self.actions["axes"].triggered.connect(lambda x:self.setMode(OpMode.axes, x))
-        self.actions["grid"].triggered.connect(lambda x:self.setMode(OpMode.grid, x))
         self.actions["curve"].triggered.connect(lambda x:self.setMode(OpMode.curve, x))
 
         self.actions["zoomin"].triggered.connect(lambda :self.zoom(1.1))
         self.actions["zoomout"].triggered.connect(lambda :self.zoom(0.9))
+        #self.actions["grid"].triggered.connect(lambda x:self.setMode(OpMode.grid, x))
+
+        self.actions["undo"].setEnabled(False)
+        self.actions["redo"].setEnabled(False)

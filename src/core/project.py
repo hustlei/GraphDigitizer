@@ -14,12 +14,12 @@ from PyQt5.QtCore import Qt
 from .enums import PointType
 
 class Curve():
-    def __init__(self, name):
-        self.name = name
-        self.sceneCoords = [] # x,y coords on GraphicsScenes
-        self.digitCoords = [] # digitized points cooords
+    def __init__(self):
+        self.points = [] # scene points cooords
+        self.digitPts = []
         self.pointType = PointType.cross
         self.pointColor = Qt.blue
+        self.lineWidth = 1
 
 class Datas():
     def __init__(self, imgpath=""):
@@ -27,9 +27,16 @@ class Datas():
         self.imgScale = 1
         self.imgOriginSize = None
         self.imgSize = None
-        self.axisx = {0:0,1:1}
-        self.axisy = {0:0,1:1}
-        self.curves = {"default": Curve("default")}
+
+        self.gridMinx = None
+        self.gridMaxx = None
+        self.gridMiny = None
+        self.gridMaxY = None
+        self.axisx = {} #{0:0,1:1}
+        self.axisy = {} #{0:0,1:1}
+        self.curves = {"default": Curve()}
+
+        self.currentCurve = "default"
 
         self.setImgpath(imgpath)
 

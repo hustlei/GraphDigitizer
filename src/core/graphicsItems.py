@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QApplication,QGraphicsScene,QGraphicsView,QGraphicsRectItem,QMainWindow,QLabel,QGraphicsItem,QGraphicsEllipseItem
 from PyQt5.QtCore import Qt,pyqtSignal,QPoint,QRectF
-from PyQt5.QtGui import QPen, QPainterPath
+from PyQt5.QtGui import QPen, QPainterPath, QFocusEvent
 from .enums import PointType
 
 class QGraphicsPointItem(QGraphicsItem):
@@ -17,8 +17,11 @@ class QGraphicsPointItem(QGraphicsItem):
     def boundingRect(self):
         return QRectF(-self.pointSize[0]/2,-self.pointSize[1]/2,self.pointSize[0],self.pointSize[1])
         #return QRectF(-self.pointSize[0]/2-self.linewidth,-self.pointSize[1]/2-self.linewidth,self.pointSize[0]+self.linewidth*2,self.pointSize[1]+self.linewidth*2)
-    
+
     def paint(self, painter, option, widget):
+        if self.hasFocus():
+            painter.setPen(QPen(Qt.gray, 1, Qt.DashLine))
+            painter.drawRect(self.boundingRect())
         painter.setPen(QPen(self.pointColor,self.linewidth))
         #painter.drawRect(self.boundingRect())
         if self.pointType is PointType.none:

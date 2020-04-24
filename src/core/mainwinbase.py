@@ -95,12 +95,12 @@ class MainWinBase(QMainWindow):
         self.actions["zoomin"] = createAct(self.tr("&ZoomIn"), self.tr("Zoom In"), "Ctrl++", ':appres.img/zoomin.png')
         self.actions["zoomout"] = createAct(self.tr("&ZoomOut"), self.tr("Zoom Out"), "Ctrl+-",
                                             ':appres.img/zoomout.png')
+        self.actions["showgrid"] = createAct(self.tr("Show Axes &Grid"), self.tr("Show AxesGrid"), None, ':appres.img/grid.png',
+                                         checkable=True)
         self.actions["select"] = createAct(self.tr("Select Mode"), self.tr("Select Mode"), None,
                                            ':appres.img/select.png', checkable=True)
         self.actions["axes"] = createAct(self.tr("Set &Axes points"), self.tr("Set Axes Points"), None,
                                          ':appres.img/axes.png', checkable=True)
-        self.actions["grid"] = createAct(self.tr("Axes &Grid"), self.tr("Show AxesGrid"), None, ':appres.img/grid.png',
-                                         checkable=True)
         self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png',
                                           checkable=True)
 
@@ -158,12 +158,12 @@ class MainWinBase(QMainWindow):
 
         self.menus["Digit"].addAction(self.actions["select"])
         self.menus["Digit"].addAction(self.actions["axes"])
-        self.menus["Digit"].addAction(self.actions["grid"])
         self.menus["Digit"].addAction(self.actions["curve"])
 
         self.menus["View"].addAction(self.actions["zoomin"])
         self.menus["View"].addAction(self.actions["zoomout"])
         self.menus["View"].addSeparator()
+        self.menus["View"].addAction(self.actions["showgrid"])
         self.menus["View"].addAction(self.actions["showcurves"])
 
         self.menus["Config"].addAction(self.actions["config"])
@@ -212,12 +212,12 @@ class MainWinBase(QMainWindow):
         self.toolbars["Digitize"] = QToolBar(self.tr("Digitize"))
         self.toolbars["Digitize"].addAction(self.actions["select"])
         self.toolbars["Digitize"].addAction(self.actions["axes"])
-        self.toolbars["Digitize"].addAction(self.actions["grid"])
         self.toolbars["Digitize"].addAction(self.actions["curve"])
 
         self.toolbars["Display"] = QToolBar(self.tr("Display"))
         self.toolbars["Display"].addAction(self.actions["zoomin"])
         self.toolbars["Display"].addAction(self.actions["zoomout"])
+        self.toolbars["Display"].addAction(self.actions["showgrid"])
 
         self.toolbars["View"] = QToolBar(self.tr("View"))
         self.toolbars["View"].addAction(self.actions["showcurves"])

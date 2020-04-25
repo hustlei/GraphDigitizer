@@ -25,7 +25,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.axesPts = []
         self.gridLines = {}
         self.curveObjs = {}
-        self.curvePointObjs = {}
+        self.pointObjs = {}
         # axes curve and point datamodel
         self.axesModel = QStandardItemModel()
         self.curveModel = QStandardItemModel()
@@ -79,7 +79,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         while(name in self.curveObjs):
             name = nextName(name)
         self.curveObjs[name] = []
-        self.curvePointObjs[name] = []
+        self.pointObjs[name] = []
         item1 = IconItem()
         item2 = QStandardItem(name)
         item3 = QStandardItem()
@@ -102,7 +102,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         if okPressed and newname != '':
             if newname != name:
                 self.curveObjs[newname] = self.curveObjs.pop(name)
-                self.curvePointObjs[newname] = self.curvePointObjs.pop(name)
+                self.pointObjs[newname] = self.pointObjs.pop(name)
                 for i in range(self.curveModel.rowCount()):
                     item = self.curveModel.item(i, 1)
                     if item.text() == name:
@@ -154,20 +154,21 @@ class GraphDigitGraphicsView(QGraphicsView):
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.curve and clicked:
+            self.sigMouseMovePoint.emit(event.pos(), ptscene)
             ptitem = QGraphicsPointItem()
             ptitem.pointColor = Qt.blue
             ptitem.linewidth = 1
             ptitem.setPos(ptscene)
             ptitem.setFlags(
                 QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
-            self.scene.addItem(ptitem)
 
-            if self.currentCurve not in self.curvePointObjs:
-                self.curvePointObjs[self.currentCurve] = []
-            self.curvePointObjs[self.currentCurve].append(ptitem)
+            if self.currentCurve not in self.pointObjs:
+                self.pointObjs[self.currentCurve] = []
+
+            self.pointObjs[self.currentCurve].append(ptitem)
             self.updateCurve(self.currentCurve)
             self.updateCurvePoints(self.currentCurve)
-            self.sigMouseMovePoint.emit(event.pos(), ptscene)
+            self.scene.addItem(ptitem)
             ptitem.setSelected(True)
 
         # item1=QGraphicsRectItem(rect)  #创建矩形---以场景为坐标
@@ -180,7 +181,7 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def deletePoint(self, pointItem):
         curvechange = None
-        for name, items in self.curvePointObjs.items():
+        for name, items in self.pointObjs.items():
             for ptitem in items:
                 if ptitem is pointItem:
                     curvechange = name
@@ -222,8 +223,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             curveitem = []
         lastitems = curveitem.copy()
 
-        if name in self.curvePointObjs:
-            pointItems = self.curvePointObjs[name]
+        if name in self.pointObjs:
+            pointItems = self.pointObjs[name]
         else:
             pointItems = []
         points = []
@@ -243,16 +244,9 @@ class GraphDigitGraphicsView(QGraphicsView):
         for line in lastitems:
             self.scene.removeItem(line)
 
-    def displayCurvePoints(self, curvename):
-        self.pointsModel.clear()
-        for pt in self.curvePointObjs[curvename]:
-            item1 = QStandardItem()
-            item2 = QStandardItem(str(pt.x()))
-            item3 = QStandardItem(str(pt.y()))
-            self.pointsModel.appendRow([item1, item2, item3])
 
     def updateCurvePoints(self, name):
-        extra = len(self.curvePointObjs[name]) - self.pointsModel.rowCount()
+        extra = len(self.pointObjs[name]) - self.pointsModel.rowCount()
         if extra > 0:
             for i in range(extra):
                 item1 = QStandardItem()
@@ -260,19 +254,20 @@ class GraphDigitGraphicsView(QGraphicsView):
                 item3 = QStandardItem()
                 self.pointsModel.appendRow([item1, item2, item3])
         elif extra < 0:
-            j = self.curveModel.rowCount() - 1
+            j = self.pointsModel.rowCount()
             i = j+extra
             self.pointsModel.removeRows(i, j)
 
         for i in range(self.pointsModel.rowCount()):
-            pt = self.curvePointObjs[name][i]
+            pt = self.pointObjs[name][i]
+            self.pointsModel.item(i,0).setText(str(i))
             self.pointsModel.item(i,1).setText(str(pt.x()))
             self.pointsModel.item(i,2).setText(str(pt.y()))
 
     def changeCurrentCurve(self, name=None):
         if name != self.currentCurve or name==None:
-            self.displayCurvePoints(name)
             self.currentCurve = name
+            self.updateCurvePoints(name)
 
     # def curvetabChanged(self, item):
     #     i = item.row()

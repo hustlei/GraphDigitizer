@@ -119,7 +119,7 @@ class MainWin(MainWinBase):
         self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(
             name=selectedCurve()))
 
-        def changecurrentcurrve(index):
+        def changecurve(index):
             if index.column() == 0:
                 for i in range(self.view.curveModel.rowCount()):
                     if i == index.row():
@@ -127,4 +127,4 @@ class MainWin(MainWinBase):
                         self.view.changeCurrentCurve(self.view.curveModel.item(i,1).text())
                     else:
                         self.view.curveModel.item(i, 0).switch(False)
-        self.curveTable.doubleClicked.connect(changecurrentcurrve)
+        self.curveTable.doubleClicked.connect(changecurve)

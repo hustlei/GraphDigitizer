@@ -19,7 +19,7 @@ class QGraphicsPointItem(QGraphicsItem):
         #return QRectF(-self.pointSize[0]/2-self.linewidth,-self.pointSize[1]/2-self.linewidth,self.pointSize[0]+self.linewidth*2,self.pointSize[1]+self.linewidth*2)
 
     def paint(self, painter, option, widget):
-        if self.hasFocus():
+        if self.isSelected(): #hasFocus():
             painter.setPen(QPen(Qt.gray, 1, Qt.DashLine))
             painter.drawRect(self.boundingRect())
         painter.setPen(QPen(self.pointColor,self.linewidth))

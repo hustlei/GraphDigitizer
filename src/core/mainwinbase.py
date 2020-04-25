@@ -6,7 +6,8 @@ Copyright (c) 2019 lileilei <hustlei@sina.cn>
 from PyQt5.QtCore import Qt, QSize, QPoint, QPointF
 from PyQt5.QtGui import QKeySequence, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QStyleFactory, QAction, QMenu, QToolBar, QWidget, QLabel,
-                             QCheckBox, QComboBox, QTabWidget, QDockWidget, qApp)
+                             QCheckBox, QComboBox, QTabWidget, QDockWidget, qApp, QSplitter, QTableView, QScrollArea,
+                             QVBoxLayout)
 from res import img_rc
 
 
@@ -76,7 +77,7 @@ class MainWinBase(QMainWindow):
         self.actions["export"] = createAct(self.tr("&ExportCurves"), self.tr("ExportCurves"), "Ctrl+Alt+E",
                                            ':appres.img/export.png')
         self.actions["close"] = createAct(self.tr("&Close"), self.tr("Close"))
-        self.actions["exit"] = createAct(self.tr("&Exit"), self.tr("Exit"), "Ctrl+Q", ':appres.img/close.png')
+        self.actions["exit"] = createAct(self.tr("&Exit"), self.tr("Exit"), "Ctrl+Q")
         self.actions["undo"] = createAct(self.tr("&Undo"),
                                          self.tr("Undo") + keys2str(QKeySequence.Undo), QKeySequence.Undo,
                                          ':appres.img/undo.png')
@@ -95,14 +96,21 @@ class MainWinBase(QMainWindow):
         self.actions["zoomin"] = createAct(self.tr("&ZoomIn"), self.tr("Zoom In"), "Ctrl++", ':appres.img/zoomin.png')
         self.actions["zoomout"] = createAct(self.tr("&ZoomOut"), self.tr("Zoom Out"), "Ctrl+-",
                                             ':appres.img/zoomout.png')
-        self.actions["showgrid"] = createAct(self.tr("Show Axes &Grid"), self.tr("Show AxesGrid"), None, ':appres.img/grid.png',
-                                         checkable=True)
+        self.actions["showgrid"] = createAct(self.tr("Show Axes &Grid"), self.tr("Show AxesGrid"), None,
+                                             ':appres.img/grid.png',
+                                             checkable=True)
         self.actions["select"] = createAct(self.tr("Select Mode"), self.tr("Select Mode"), None,
                                            ':appres.img/select.png', checkable=True)
         self.actions["axes"] = createAct(self.tr("Set &Axes points"), self.tr("Set Axes Points"), None,
                                          ':appres.img/axes.png', checkable=True)
         self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png',
                                           checkable=True)
+        self.actions["del"] = createAct(self.tr("&del point or curve"), self.tr("delete"), QKeySequence.Delete,
+                                        ':appres.img/delete.png')
+        self.actions["addcurve"] = createAct(self.tr("add a new curve"), self.tr("add a new curve"), QKeySequence.Delete,
+                                        ':appres.img/new.png')
+        self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change curve name"), QKeySequence.Delete,
+                                        ':appres.img/edit.png')
 
         # self.actions["DisableQss"] = createAct(self.tr("&DisableQss"), self.tr("DisableQss"), checkable=True)
         # self.actions["DisableQss"].setChecked(False)
@@ -208,6 +216,7 @@ class MainWinBase(QMainWindow):
         self.toolbars["Edit"] = QToolBar(self.tr("Edit"))
         self.toolbars["Edit"].addAction(self.actions["undo"])
         self.toolbars["Edit"].addAction(self.actions["redo"])
+        self.toolbars["Edit"].addAction(self.actions["del"])
 
         self.toolbars["Digitize"] = QToolBar(self.tr("Digitize"))
         self.toolbars["Digitize"].addAction(self.actions["select"])
@@ -247,6 +256,32 @@ class MainWinBase(QMainWindow):
         self.docks["curves"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, self.docks["curves"])
         self.docks["curves"].visibilityChanged.connect(self.actions["showcurves"].setChecked)
+
+        self.docktabwidget = QTabWidget(self.docks["curves"])
+        self.docks["curves"].setWidget(self.docktabwidget)
+        self.docktabwidget.setTabPosition(QTabWidget.South)
+        self.axesTab = QScrollArea()
+        self.curveTab = QSplitter(Qt.Vertical)
+        self.docktabwidget.addTab(self.axesTab, "axes")
+        self.docktabwidget.addTab(self.curveTab, "curve")
+        self.docktabwidget.setCurrentIndex(1)
+
+        self.axesTable = QTableView()
+        self.curveTable = QTableView()
+        self.pointsTable = QTableView()
+        self.axesTab.setWidgetResizable(True)
+        self.axesTab.setWidget(self.axesTable)
+        w = QWidget()
+        lay = QVBoxLayout()
+        lay.setContentsMargins(0,0,0,0)
+        self.curvePanelToolbar = QToolBar(self.curveTab)
+        lay.addWidget(self.curvePanelToolbar)
+        lay.addWidget(self.curveTable)
+        w.setLayout(lay)
+        self.curveTab.addWidget(w)
+        self.curveTab.addWidget(self.pointsTable)
+        self.curvePanelToolbar.addAction(self.actions["addcurve"])
+        self.curvePanelToolbar.addAction(self.actions["renamecurve"])
 
     def createMainWidget(self):
         self.setCentralWidget(self.mainTabWidget)

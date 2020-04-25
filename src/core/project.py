@@ -15,28 +15,31 @@ from .enums import PointType
 
 class Curve():
     def __init__(self):
-        self.points = [] # scene points cooords
-        self.digitPts = []
+        self.points = [] # scene coord for open project
         self.pointType = PointType.cross
         self.pointColor = Qt.blue
         self.lineWidth = 1
 
-class Datas():
+class ProjData():
     def __init__(self, imgpath=""):
+        #chart image
         self.img = None
         self.imgScale = 1
         self.imgOriginSize = None
         self.imgSize = None
-
+        # axis coords
+        # self.axisx = {} #{0:0,1:1}
+        # self.axisy = {} #{0:0,1:1}
+        # grid
         self.gridMinx = None
         self.gridMaxx = None
         self.gridMiny = None
         self.gridMaxY = None
-        self.axisx = {} #{0:0,1:1}
-        self.axisy = {} #{0:0,1:1}
-        self.curves = {"default": Curve()}
+        # curves
+        # self.curves = {"default": Curve()}
 
-        self.currentCurve = "default"
+        # init
+        # self.currentCurve = "default"
 
         self.setImgpath(imgpath)
 

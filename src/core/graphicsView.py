@@ -10,6 +10,7 @@ from core.graphicsItems import QGraphicsPointItem
 from core.project import ProjData
 from core.dialogs.pick import Axesdialog
 from core.utils import nextName
+from core.utils.algor import *
 
 
 class GraphDigitGraphicsView(QGraphicsView):
@@ -43,6 +44,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         # init
         self.currentCurve = 'default'
         self.addCurve('default')
+        self.pointsModel.itemChanged.connect(self.changePointOrder)
 
     def initView(self):
         # scene
@@ -76,7 +78,7 @@ class GraphDigitGraphicsView(QGraphicsView):
     def addCurve(self, name=None):
         if not name:
             name = nextName(self.currentCurve)
-        while(name in self.curveObjs):
+        while (name in self.curveObjs):
             name = nextName(name)
         self.curveObjs[name] = []
         self.pointObjs[name] = []
@@ -90,15 +92,15 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.curveModel.appendRow([item1, item2, item3])
         self.currentCurve = name
         if self.curveModel.rowCount() == 1:
-            self.curveModel.item(0,0).switch(True)
+            self.curveModel.item(0, 0).switch(True)
 
     def renameCurve(self, newname=None, name=None):
         if name not in self.curveObjs:
             name = self.currentCurve
         if not newname:
             newname, okPressed = QInputDialog.getText(self, self.tr("change curve name"),
-                                                   self.tr("Curve to be renamed:{}".format(name)), QLineEdit.Normal,
-                                                   name)
+                                                      self.tr("Curve to be renamed:{}".format(name)), QLineEdit.Normal,
+                                                      name)
         if okPressed and newname != '':
             if newname != name:
                 self.curveObjs[newname] = self.curveObjs.pop(name)
@@ -165,9 +167,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             if self.currentCurve not in self.pointObjs:
                 self.pointObjs[self.currentCurve] = []
 
-            self.pointObjs[self.currentCurve].append(ptitem)
+            i =self.newPointIndex(ptitem)
+            self.pointObjs[self.currentCurve].insert(i, ptitem)
             self.updateCurve(self.currentCurve)
-            self.updateCurvePoints(self.currentCurve)
             self.scene.addItem(ptitem)
             ptitem.setSelected(True)
 
@@ -178,6 +180,51 @@ class GraphDigitGraphicsView(QGraphicsView):
         # QGraphicsItem.ItemIsMovable---可移动
         # QGraphicsItem.ItemIsPanel---
         # self.scene.addItem(item1)  #给场景添加图元
+
+    def newPointIndex(self, ptitem):
+        """get the nearest position for new point
+        return the predicted new index for new point in pointObj
+        """
+        l = len(self.pointObjs[self.currentCurve])
+        if l == 0:
+            return 0
+        if l == 1:
+            return 1
+        index = 0
+
+        p = (ptitem.x(),ptitem.y())
+        p1 = (self.pointObjs[self.currentCurve][0].x(),self.pointObjs[self.currentCurve][0].y())
+        p2 = (self.pointObjs[self.currentCurve][1].x(),self.pointObjs[self.currentCurve][1].y())
+        mindist = distToLine(p,p1,p2)
+        for i in range(1,l-1):
+            p1=p2
+            p2=(self.pointObjs[self.currentCurve][i+1].x(),self.pointObjs[self.currentCurve][i+1].y())
+            dist = distToLine(p,p1,p2)
+            pos = perpendOnLine(p,p1,p2)
+            if pos == 0:
+                if dist < mindist:
+                    mindist = dist
+                    index = i
+        if index == 0:
+            p1 = (self.pointObjs[self.currentCurve][0].x(), self.pointObjs[self.currentCurve][0].y())
+            p2 = (self.pointObjs[self.currentCurve][1].x(), self.pointObjs[self.currentCurve][1].y())
+            if perpendOnLine(p,p1,p2) ==0:
+                return 1
+            p1 = (self.pointObjs[self.currentCurve][l-2].x(), self.pointObjs[self.currentCurve][l-2].y())
+            p2 = (self.pointObjs[self.currentCurve][l-1].x(), self.pointObjs[self.currentCurve][l-1].y())
+            distend = distToLine(p,p1,p2)
+            if distend/mindist <1.2:
+                return l
+            else:
+                return 0
+        else:
+            p1 = (self.pointObjs[self.currentCurve][index].x(), self.pointObjs[self.currentCurve][index].y())
+            p2 = (self.pointObjs[self.currentCurve][index+1].x(), self.pointObjs[self.currentCurve][index+1].y())
+            dist = distToLine(p,p1,p2)
+            lenth = distToPoint(p1,p2)
+            if dist < lenth/5:
+                return index+1
+        return l
 
     def deletePoint(self, pointItem):
         curvechange = None
@@ -244,6 +291,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         for line in lastitems:
             self.scene.removeItem(line)
 
+        self.updateCurvePoints(name)
 
     def updateCurvePoints(self, name):
         extra = len(self.pointObjs[name]) - self.pointsModel.rowCount()
@@ -252,22 +300,42 @@ class GraphDigitGraphicsView(QGraphicsView):
                 item1 = QStandardItem()
                 item2 = QStandardItem()
                 item3 = QStandardItem()
+                item2.setEditable(False)
+                item3.setEditable(False)
                 self.pointsModel.appendRow([item1, item2, item3])
         elif extra < 0:
             j = self.pointsModel.rowCount()
-            i = j+extra
-            self.pointsModel.removeRows(i, j)
+            i = j + extra
+            self.pointsModel.removeRows(i, -extra)
 
         for i in range(self.pointsModel.rowCount()):
             pt = self.pointObjs[name][i]
-            self.pointsModel.item(i,0).setText(str(i))
-            self.pointsModel.item(i,1).setText(str(pt.x()))
-            self.pointsModel.item(i,2).setText(str(pt.y()))
+            self.pointsModel.item(i, 0).setText(str(i + 1))
+            self.pointsModel.item(i, 1).setText(str(pt.x()))
+            self.pointsModel.item(i, 2).setText(str(pt.y()))
 
     def changeCurrentCurve(self, name=None):
-        if name != self.currentCurve or name==None:
+        if name != self.currentCurve or name == None:
             self.currentCurve = name
             self.updateCurvePoints(name)
+
+    def changePointOrder(self, item):
+        row = item.row()
+        if item.column() != 0:
+            return
+        newindex = item.text()
+        if not newindex.isdigit():
+            return
+        newindex = int(newindex)
+        if newindex == row + 1:
+            return
+        if newindex > self.pointsModel.rowCount():
+            newindex = self.pointsModel.rowCount()
+        newindex -= 1
+
+        self.pointObjs[self.currentCurve].insert(newindex, self.pointObjs[self.currentCurve].pop(row))
+        self.updateCurve(self.currentCurve)
+        self.updateCurvePoints(self.currentCurve)
 
     # def curvetabChanged(self, item):
     #     i = item.row()
@@ -287,8 +355,10 @@ class GraphDigitGraphicsView(QGraphicsView):
     #     if newcurrent and newcurrent != self.currentCurve:
     #         self.changeCurrentCurve(newcurrent)
 
+
 class IconItem(QStandardItem):
     """for current curve"""
+
     def __init__(self):
         super().__init__()
         self.setCheckable(False)

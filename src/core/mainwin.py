@@ -21,8 +21,8 @@ class MainWin(MainWinBase):
         self.setupActions()
 
     def slotMouseMovePoint(self, pt, ptscene):
-        self.updatePixelCoord(pt.x(), pt.y())
-        self.updatePointCoord(ptscene)
+        self.updatePixelCoordStatus(pt.x(), pt.y())
+        self.updatePointCoordStatus(ptscene)
 
     ## action funcs
     def new(self):
@@ -128,3 +128,4 @@ class MainWin(MainWinBase):
                     else:
                         self.view.curveModel.item(i, 0).switch(False)
         self.curveTable.doubleClicked.connect(changecurve)
+        #self.pointsTable.mov

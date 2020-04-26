@@ -292,13 +292,13 @@ class MainWinBase(QMainWindow):
         self.themeCombo.currentTextChanged.connect(qApp.setStyle)
 
     ## misc func
-    def updatePixelCoord(self, ptorx, y=None):
+    def updatePixelCoordStatus(self, ptorx, y=None):
         if isinstance(ptorx, QPoint) or isinstance(ptorx, QPointF):
             self.status["pixel"].setText("Pixel Coordinate: {},{}".format(ptorx.x(), ptorx.y()))
         else:
             self.status["pixel"].setText("Pixel Coordinate: {},{}".format(ptorx, y))
 
-    def updatePointCoord(self, ptorx, y=None):
+    def updatePointCoordStatus(self, ptorx, y=None):
         if isinstance(ptorx, QPoint) or isinstance(ptorx, QPointF):
             self.status["point"].setText("Point Coordinate: {:.0f},{:.0f}".format(ptorx.x(), ptorx.y()))
         else:

@@ -31,10 +31,10 @@ class ProjData():
         self.axisx = {} #{0:0,1:1}
         self.axisy = {} #{0:0,1:1}
         # grid
-        self.gridMinx = None
-        self.gridMaxx = None
-        self.gridMiny = None
-        self.gridMaxY = None
+        self.gridx = [None, None, None] #min max step
+        self.gridy = [None, None, None] #min max step
+        self.gridLineType = Qt.DotLine
+        self.gridColor = Qt.gray
         # curves
         # self.curves = {"default": Curve()}
 

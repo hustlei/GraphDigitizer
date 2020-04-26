@@ -127,7 +127,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.sigMouseMovePoint.emit(pt, self.mapToScene(pt))  # 发送鼠标位置
         QGraphicsView.mouseMoveEvent(self, evt)
         self.updateCurve(self.currentCurve)
-        #self.repaint()
+        # self.repaint()
         # self.setDragMode(QGraphicsView.NoDrag) #(RubberBandDrag) #ScrollHandDrag) #NoDrag)
         # if self.mode is OpMode.axesx:
         #     self.updateAxis("x")
@@ -179,8 +179,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.axesyObjs.append(item)
                 self.axesxModel.appendRow(
                     [QStandardItem("y({})".format(ptscene.y())), QStandardItem(str(y))])
-                #self.calGridCoord()
-                #self.updateGrid()
+                # self.calGridCoord()
+                # self.updateGrid()
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -338,6 +338,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 line.setVisible(False)
             for line in self.axesyObjs:
                 line.setVisible(False)
+
     '''
     def calGridCoord(self):
         """calc the coord and pixel position of gridx list and gridy list"""
@@ -345,17 +346,17 @@ class GraphDigitGraphicsView(QGraphicsView):
         gridycoord = []
         gridxpos = []
         gridypos = []
-        if len(self.datas.axisx) < 3 or len(self.datas.axisy) < 3:
+        if len(self.axesxs) < 3 or len(self.axesys) < 3:
             return (gridxpos, gridypos), (gridxcoord, gridycoord)
 
-        xfrom = sorted(self.datas.axisx)
+        xfrom = sorted(self.axesxs)
         xto = []
         for i in xfrom:
-            xto.append(self.datas.axisx[i])
-        yfrom = sorted(self.datas.axisy)
+            xto.append(self.axesxs[i])
+        yfrom = sorted(self.axesys)
         yto = []
         for i in yfrom:
-            yto.append(self.datas.axisy[i])
+            yto.append(self.axesys[i])
         xmin = min(xfrom) if self.datas.gridx[0] is None else self.datas.gridx[0]
         xmax = max(xfrom) if self.datas.gridx[1] is None else self.datas.gridx[1]
         xstep = (xmax - xmin) / 5 if self.datas.gridx[2] is None else self.datas.gridx[2]
@@ -397,8 +398,9 @@ class GraphDigitGraphicsView(QGraphicsView):
         for i in range(self.pointsModel.rowCount()):
             pt = self.pointObjs[name][i]
             self.pointsModel.item(i, 0).setText(str(i + 1))
-            self.pointsModel.item(i, 1).setText(str(pt.x()))
-            self.pointsModel.item(i, 2).setText(str(pt.y()))
+            xlist, ylist = self.pointToCoord([pt.x()], [pt.y()])
+            self.pointsModel.item(i, 1).setText(str(round(xlist[0],6)))
+            self.pointsModel.item(i, 2).setText(str(round(ylist[0],6)))
 
     def changeCurrentCurve(self, name=None):
         if name != self.currentCurve or name == None:
@@ -442,23 +444,44 @@ class GraphDigitGraphicsView(QGraphicsView):
     #         self.changeCurrentCurve(newcurrent)
 
     def pointToCoord(self, xlist, ylist):
-        if len(self.datas.axisx) < 2 or len(self.datas.axisy) < 2:
-            return None
-        pixx = self.datas.axisx.keys()
-        coordx = self.datas.axisx.values()
-        pixy = self.datas.axisy.keys()
-        coordy = self.datas.axisy.values()
-        xCoords = interp(pixx, coordx, xlist)
-        yCoords = interp(pixy, coordy, ylist)
+        if len(self.axesxs) < 2 or len(self.axesys) < 2:
+            return (xlist, ylist)
+
+        gridxs = []
+        for item in self.axesxObjs:
+            gridxs.append(item.line().x1())
+        coordx = self.axesxs
+        xCoords = interp(gridxs, coordx, xlist)
+
+        gridys = []
+        for item in self.axesyObjs:
+            gridys.append(item.line().y1())
+        coordy = self.axesys
+        yCoords = interp(gridys, coordy, ylist)
+
         return (xCoords, yCoords)
 
     def coordToPoint(self, xlist, ylist):
-        if len(self.datas.axisx) < 2 or len(self.datas.axisy) < 2:
-            return None
-        pixx = self.datas.axisx.keys()
-        coordx = self.datas.axisx.values()
-        pixy = self.datas.axisy.keys()
-        coordy = self.datas.axisy.values()
+        if len(self.axesxs) < 2 or len(self.axesys) < 2:
+            return (xlist, ylist)
+        gridxs = []
+        for item in self.axesxObjs:
+            gridxs.append(item.line().x1())
+        coordx = self.axesxs
+        gridys = []
+        for item in self.axesyObjs:
+            gridys.append(item.line().y1())
+        coordy = self.axesys
+        xposs = interp(coordx, gridxs, xlist)
+        yposs = interp(coordy, gridys, ylist)
+        return (xposs, yposs)
+
+        if len(self.axesxs) < 2 or len(self.axesys) < 2:
+            return (xlist, ylist)
+        pixx = self.axesxs.keys()
+        coordx = self.axesxs.values()
+        pixy = self.axesys.keys()
+        coordy = self.axesys.values()
         xPixs = interp(coordx, pixx, xlist)
         yPixs = interp(coordy, pixy, ylist)
         return (xPixs, yPixs)

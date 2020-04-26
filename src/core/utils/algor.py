@@ -46,11 +46,19 @@ def perpendOnLine(point,p1,p2):
     return 0
 
 def interp(xlist,ylist,newxlist,maxkind=3):
-    if len(xlist)<=3:
+    d1={}
+    for i in range(len(xlist)):
+        d1[xlist[i]]=ylist[i]
+    xlist = sorted(d1)
+    ylist = []
+    for x in xlist:
+        ylist.append(d1[x])
+
+    if len(xlist)<=maxkind:
         kind = len(xlist)-1
     else:
         kind = maxkind
-    yarray = interpolate.UnivariateSpline(xlist,ylist,k=kind,s=0)
+    yarray = interpolate.UnivariateSpline(xlist,ylist,k=kind,s=0)(newxlist)
     return list(yarray)
 
 
@@ -62,3 +70,6 @@ if __name__ == "__main__":
     print(perpendOnLine((13,8),(5,5),(10,5))) #1
 
     print(perpendOnLine((1, 1), (2, 2), (3, 3)))  # -1
+
+    print(interp([0,2],[0,2],[1,4])) # 1,4
+    print(interp([2,0],[2,0],[1,4])) # 1,4

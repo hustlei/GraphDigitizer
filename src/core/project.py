@@ -34,6 +34,7 @@ class ProjData():
         self.gridx = [None, None, None] #min max step
         self.gridy = [None, None, None] #min max step
         self.gridLineType = Qt.DotLine
+        self.gridLineWidth = 1
         self.gridColor = Qt.gray
         # curves
         # self.curves = {"default": Curve()}

@@ -3,7 +3,8 @@
 <qresource prefix="appres.img">
     <file alias="AddTable_5632.png">img/AddTable_5632.png</file>
     <file alias="AligntoGrid_7432.png">img/AligntoGrid_7432.png</file>
-    <file alias="axes.png">img/axes.png</file>
+    <file alias="axesx.png">img/axesx.png</file>
+    <file alias="axesy.png">img/axesy.png</file>
     <file alias="close.png">img/close.png</file>
     <file alias="close_big.png">img/close_big.png</file>
     <file alias="color.png">img/color.png</file>

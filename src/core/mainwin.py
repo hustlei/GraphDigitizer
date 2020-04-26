@@ -70,22 +70,27 @@ class MainWin(MainWinBase):
         self.actions["del"].triggered.connect(self.view.deleteSelectedPoint)
 
         self.actions["select"].triggered.connect(lambda x: self.setMode(OpMode.select, x))
-        self.actions["axes"].triggered.connect(lambda x: self.setMode(OpMode.axes, x))
+        self.actions["axesx"].triggered.connect(lambda x: (self.setMode(OpMode.axesx, x),
+                                                           self.actions["showgrid"].setChecked(True)))
+        self.actions["axesy"].triggered.connect(lambda x: (self.setMode(OpMode.axesy, x),
+                                                           self.actions["showgrid"].setChecked(True)))
         self.actions["curve"].triggered.connect(lambda x: self.setMode(OpMode.curve, x))
-
         self.actions["zoomin"].triggered.connect(lambda: self.zoom(1.1))
         self.actions["zoomout"].triggered.connect(lambda: self.zoom(0.9))
-        # self.actions["grid"].triggered.connect(lambda x:self.setMode(OpMode.grid, x))
+        self.actions["showgrid"].setChecked(True)
+        self.actions["showgrid"].triggered.connect(self.view.showGrid)
 
         self.actions["undo"].setEnabled(False)
         self.actions["redo"].setEnabled(False)
 
-        self.axesTable.setModel(self.view.axesModel)
+        self.axesxTable.setModel(self.view.axesxModel)
+        self.axesyTable.setModel(self.view.axesyModel)
         self.curveTable.setModel(self.view.curveModel)
         self.pointsTable.setModel(self.view.pointsModel)
-        self.axesTable.setColumnWidth(0, 90)
-        self.axesTable.setColumnWidth(1, 65)
-        self.axesTable.setColumnWidth(2, 65)
+        self.axesxTable.setColumnWidth(0, 120)
+        self.axesxTable.setColumnWidth(1, 100)
+        self.axesyTable.setColumnWidth(0, 120)
+        self.axesyTable.setColumnWidth(1, 100)
         self.curveTable.setColumnWidth(0, 45)
         self.curveTable.setColumnWidth(1, 120)
         self.curveTable.setColumnWidth(2, 45)
@@ -100,10 +105,13 @@ class MainWin(MainWinBase):
             def createEditor(self, QWidget, QStyleOptionViewItem, QModelIndex):
                 return None
 
-        self.axesTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesTable))
+        self.axesxTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesxTable))
+        self.axesyTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesyTable))
         self.curveTable.setItemDelegateForColumn(1, ReadOnlyDelegate(self.curveTable))
-        self.axesTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.axesTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.axesxTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.axesxTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.axesyTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.axesyTable.setSelectionMode(QAbstractItemView.SingleSelection)
         self.curveTable.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.curveTable.setSelectionMode(QAbstractItemView.SingleSelection)
 
@@ -124,8 +132,9 @@ class MainWin(MainWinBase):
                 for i in range(self.view.curveModel.rowCount()):
                     if i == index.row():
                         self.view.curveModel.item(i, 0).switch(True)
-                        self.view.changeCurrentCurve(self.view.curveModel.item(i,1).text())
+                        self.view.changeCurrentCurve(self.view.curveModel.item(i, 1).text())
                     else:
                         self.view.curveModel.item(i, 0).switch(False)
+
         self.curveTable.doubleClicked.connect(changecurve)
-        #self.pointsTable.mov
+        # self.pointsTable.mov

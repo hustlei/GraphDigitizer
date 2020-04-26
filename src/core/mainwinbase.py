@@ -101,8 +101,10 @@ class MainWinBase(QMainWindow):
                                              checkable=True)
         self.actions["select"] = createAct(self.tr("Select Mode"), self.tr("Select Mode"), None,
                                            ':appres.img/select.png', checkable=True)
-        self.actions["axes"] = createAct(self.tr("Set &Axes points"), self.tr("Set Axes Points"), None,
-                                         ':appres.img/axes.png', checkable=True)
+        self.actions["axesx"] = createAct(self.tr("Set x axis postions"), self.tr("Set x axis position"), None,
+                                         ':appres.img/axesx.png', checkable=True)
+        self.actions["axesy"] = createAct(self.tr("Set y axis postions"), self.tr("Set y axis position"), None,
+                                         ':appres.img/axesy.png', checkable=True)
         self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png',
                                           checkable=True)
         self.actions["del"] = createAct(self.tr("&del point or curve"), self.tr("delete"), QKeySequence.Delete,
@@ -165,7 +167,8 @@ class MainWinBase(QMainWindow):
         self.menus["Edit"].addAction(self.actions["redo"])
 
         self.menus["Digit"].addAction(self.actions["select"])
-        self.menus["Digit"].addAction(self.actions["axes"])
+        self.menus["Digit"].addAction(self.actions["axesx"])
+        self.menus["Digit"].addAction(self.actions["axesy"])
         self.menus["Digit"].addAction(self.actions["curve"])
 
         self.menus["View"].addAction(self.actions["zoomin"])
@@ -220,7 +223,8 @@ class MainWinBase(QMainWindow):
 
         self.toolbars["Digitize"] = QToolBar(self.tr("Digitize"))
         self.toolbars["Digitize"].addAction(self.actions["select"])
-        self.toolbars["Digitize"].addAction(self.actions["axes"])
+        self.toolbars["Digitize"].addAction(self.actions["axesx"])
+        self.toolbars["Digitize"].addAction(self.actions["axesy"])
         self.toolbars["Digitize"].addAction(self.actions["curve"])
 
         self.toolbars["Display"] = QToolBar(self.tr("Display"))
@@ -260,17 +264,20 @@ class MainWinBase(QMainWindow):
         self.docktabwidget = QTabWidget(self.docks["curves"])
         self.docks["curves"].setWidget(self.docktabwidget)
         self.docktabwidget.setTabPosition(QTabWidget.South)
-        self.axesTab = QScrollArea()
+        self.axesTab = QSplitter(Qt.Vertical)#QScrollArea()
         self.curveTab = QSplitter(Qt.Vertical)
         self.docktabwidget.addTab(self.axesTab, "axes")
         self.docktabwidget.addTab(self.curveTab, "curve")
         self.docktabwidget.setCurrentIndex(1)
 
-        self.axesTable = QTableView()
+        self.axesxTable = QTableView()
+        self.axesyTable = QTableView()
+        self.axesTab.addWidget(self.axesxTable)
+        self.axesTab.addWidget(self.axesyTable)
+
         self.curveTable = QTableView()
         self.pointsTable = QTableView()
-        self.axesTab.setWidgetResizable(True)
-        self.axesTab.setWidget(self.axesTable)
+        #self.axesTab.setWidgetResizable(True)
         w = QWidget()
         lay = QVBoxLayout()
         lay.setContentsMargins(0,0,0,0)

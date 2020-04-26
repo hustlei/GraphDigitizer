@@ -1,14 +1,15 @@
 import os
 
+import numpy as np
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt
-from PyQt5.QtGui import QCursor, QPainterPath, QStandardItemModel, QStandardItem, QPainter, QIcon
-from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsRectItem, QGraphicsPixmapItem, QGraphicsItem,
-                             QGraphicsEllipseItem, QGraphicsPathItem, QGraphicsLineItem, QInputDialog, QLineEdit,
-                             QMessageBox)
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen
+from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem,
+                             QGraphicsLineItem, QInputDialog, QLineEdit)
+
+from core.dialogs.pick import Axesdialog
 from core.enums import OpMode, PointType
 from core.graphicsItems import QGraphicsPointItem
 from core.project import ProjData
-from core.dialogs.pick import Axesdialog
 from core.utils import nextName
 from core.utils.algor import *
 
@@ -23,18 +24,29 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.initView()
         self.setRenderHint(QPainter.Antialiasing)
         # item objects storage
-        self.axesPts = []
-        self.gridObjs = {}
+        self.axesxObjs = []
+        self.axesyObjs = []
+        self.gridObjs = []
         self.curveObjs = {}
         self.pointObjs = {}
+        # axis coord
+        self.axesxs = []
+        self.axesys = []
+        # grid
+        self.gridxcoord = []
+        self.gridycoord = []
+        self.gridxpos = []
+        self.gridypos = []
         # axes curve and point datamodel
-        self.axesModel = QStandardItemModel()
+        self.axesxModel = QStandardItemModel()
+        self.axesyModel = QStandardItemModel()
         self.curveModel = QStandardItemModel()
         self.pointsModel = QStandardItemModel()
 
-        self.axesModel.setHorizontalHeaderLabels(["position", "x", "y"])
         self.curveModel.setHorizontalHeaderLabels(["current", "name", "visible"])
         self.pointsModel.setHorizontalHeaderLabels(["order", "x", "y"])
+        self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
+        self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
 
         ###
         self.mode = OpMode.default
@@ -115,8 +127,12 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.sigMouseMovePoint.emit(pt, self.mapToScene(pt))  # 发送鼠标位置
         QGraphicsView.mouseMoveEvent(self, evt)
         self.updateCurve(self.currentCurve)
-        self.repaint()
+        #self.repaint()
         # self.setDragMode(QGraphicsView.NoDrag) #(RubberBandDrag) #ScrollHandDrag) #NoDrag)
+        # if self.mode is OpMode.axesx:
+        #     self.updateAxis("x")
+        # if self.mode is OpMode.axesy:
+        #     self.updateAxis("y")
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
@@ -130,28 +146,41 @@ class GraphDigitGraphicsView(QGraphicsView):
         if self.mode is OpMode.select:
             pass
             # super().mousePressEvent(event)
-        elif self.mode is OpMode.axes:
-            item = QGraphicsPointItem()
-            item.pointType = PointType.plus
-            item.linewidth = 2
-            item.setPos(ptscene)
+        elif self.mode is OpMode.axesx:
+            item = QGraphicsLineItem(ptscene.x(), self.scene.sceneRect().y(), ptscene.x(),
+                                     self.scene.sceneRect().y() + self.scene.sceneRect().height())
+            item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
 
-            (x, y) = Axesdialog.getCoord()
-            if x != None or y != None:
-                if x:
-                    self.datas.axisx[ptscene.x()] = x
-                else:
-                    x = ""
-                if y:
-                    self.datas.axisy[ptscene.y()] = y
-                else:
-                    y = ""
-                self.axesPts.append(item)
-                self.axesModel.appendRow(
-                    [QStandardItem("({},{})".format(ptscene.x(), ptscene.y())), QStandardItem(str(x)),
-                     QStandardItem(str(y))])
+            x, okPressed = QInputDialog.getDouble(self, self.tr("set x coordiniate"),
+                                                  self.tr("set the x coord for axis"))
+            if okPressed:
+                self.axesxs.append(x)
+                self.axesxObjs.append(item)
+                self.axesxModel.appendRow(
+                    [QStandardItem("x({})".format(ptscene.x())), QStandardItem(str(x))])
+                # self.calGridCoord()
+                # self.updateGrid()
+                item.setSelected(True)
+            else:
+                self.scene.removeItem(item)
+        elif self.mode is OpMode.axesy:
+            item = QGraphicsLineItem(self.scene.sceneRect().x(), ptscene.y(),
+                                     self.scene.sceneRect().x() + self.scene.sceneRect().width(), ptscene.y())
+            item.setPen(QPen(Qt.red, 1, Qt.DashLine))
+            self.scene.addItem(item)
+            item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+
+            y, okPressed = QInputDialog.getDouble(self, self.tr("set y coordiniate"),
+                                                  self.tr("set the y coord for axis"))
+            if okPressed:
+                self.axesys.append(y)
+                self.axesyObjs.append(item)
+                self.axesxModel.appendRow(
+                    [QStandardItem("y({})".format(ptscene.y())), QStandardItem(str(y))])
+                #self.calGridCoord()
+                #self.updateGrid()
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -167,19 +196,19 @@ class GraphDigitGraphicsView(QGraphicsView):
             if self.currentCurve not in self.pointObjs:
                 self.pointObjs[self.currentCurve] = []
 
-            i =self.newPointIndex(ptitem)
+            i = self.newPointIndex(ptitem)
             self.pointObjs[self.currentCurve].insert(i, ptitem)
             self.updateCurve(self.currentCurve)
             self.scene.addItem(ptitem)
             ptitem.setSelected(True)
 
-        # item1=QGraphicsRectItem(rect)  #创建矩形---以场景为坐标
-        # item1.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable|QGraphicsItem.ItemIsMovable)  #给图元设置标志
-        # QGraphicsItem.ItemIsSelectable---可选择
-        # QGraphicsItem.ItemIsFocusable---可设置焦点
-        # QGraphicsItem.ItemIsMovable---可移动
-        # QGraphicsItem.ItemIsPanel---
-        # self.scene.addItem(item1)  #给场景添加图元
+            # item1=QGraphicsRectItem(rect)  #创建矩形---以场景为坐标
+            # item1.setFlags(QGraphicsItem.ItemIsSelectable|QGraphicsItem.ItemIsFocusable|QGraphicsItem.ItemIsMovable)  #给图元设置标志
+            # QGraphicsItem.ItemIsSelectable---可选择
+            # QGraphicsItem.ItemIsFocusable---可设置焦点
+            # QGraphicsItem.ItemIsMovable---可移动
+            # QGraphicsItem.ItemIsPanel---
+            # self.scene.addItem(item1)  #给场景添加图元
 
     def newPointIndex(self, ptitem):
         """get the nearest position for new point
@@ -192,15 +221,15 @@ class GraphDigitGraphicsView(QGraphicsView):
             return 1
         index = 0
 
-        p = (ptitem.x(),ptitem.y())
-        p1 = (self.pointObjs[self.currentCurve][0].x(),self.pointObjs[self.currentCurve][0].y())
-        p2 = (self.pointObjs[self.currentCurve][1].x(),self.pointObjs[self.currentCurve][1].y())
-        mindist = distToLine(p,p1,p2)
-        for i in range(1,l-1):
-            p1=p2
-            p2=(self.pointObjs[self.currentCurve][i+1].x(),self.pointObjs[self.currentCurve][i+1].y())
-            dist = distToLine(p,p1,p2)
-            pos = perpendOnLine(p,p1,p2)
+        p = (ptitem.x(), ptitem.y())
+        p1 = (self.pointObjs[self.currentCurve][0].x(), self.pointObjs[self.currentCurve][0].y())
+        p2 = (self.pointObjs[self.currentCurve][1].x(), self.pointObjs[self.currentCurve][1].y())
+        mindist = distToLine(p, p1, p2)
+        for i in range(1, l - 1):
+            p1 = p2
+            p2 = (self.pointObjs[self.currentCurve][i + 1].x(), self.pointObjs[self.currentCurve][i + 1].y())
+            dist = distToLine(p, p1, p2)
+            pos = perpendOnLine(p, p1, p2)
             if pos == 0:
                 if dist < mindist:
                     mindist = dist
@@ -208,25 +237,25 @@ class GraphDigitGraphicsView(QGraphicsView):
         if index == 0:
             p1 = (self.pointObjs[self.currentCurve][0].x(), self.pointObjs[self.currentCurve][0].y())
             p2 = (self.pointObjs[self.currentCurve][1].x(), self.pointObjs[self.currentCurve][1].y())
-            pos = perpendOnLine(p,p1,p2)
-            dist = distToLine(p,p1,p2)
-            length = distToPoint(p1,p2)
-            if pos == 0 and dist<length/4:
+            pos = perpendOnLine(p, p1, p2)
+            dist = distToLine(p, p1, p2)
+            length = distToPoint(p1, p2)
+            if pos == 0 and dist < length / 4:
                 return 1
             pstart = (self.pointObjs[self.currentCurve][0].x(), self.pointObjs[self.currentCurve][0].y())
             pend = (self.pointObjs[self.currentCurve][-1].x(), self.pointObjs[self.currentCurve][-1].y())
-            d0 = distToPoint(p,pstart)
-            d1 = distToPoint(p,pend)
-            if pos == -1 and d0<d1:
+            d0 = distToPoint(p, pstart)
+            d1 = distToPoint(p, pend)
+            if pos == -1 and d0 < d1:
                 return 0
             return l
         else:
             p1 = (self.pointObjs[self.currentCurve][index].x(), self.pointObjs[self.currentCurve][index].y())
-            p2 = (self.pointObjs[self.currentCurve][index+1].x(), self.pointObjs[self.currentCurve][index+1].y())
-            dist = distToLine(p,p1,p2)
-            lenth = distToPoint(p1,p2)
-            if dist < lenth/2:
-                return index+1
+            p2 = (self.pointObjs[self.currentCurve][index + 1].x(), self.pointObjs[self.currentCurve][index + 1].y())
+            dist = distToLine(p, p1, p2)
+            lenth = distToPoint(p1, p2)
+            if dist < lenth / 2:
+                return index + 1
         return l
 
     def deletePoint(self, pointItem):
@@ -297,23 +326,58 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.updateCurvePoints(name)
 
     def showGrid(self, visible=True):
+        if self.mode is OpMode.axesx or self.mode is OpMode.axesy:
+            return
         if visible:
-            for line in self.gridObjs:
+            for line in self.axesxObjs:
+                line.setVisible(True)
+            for line in self.axesyObjs:
                 line.setVisible(True)
         else:
-            for line in self.gridObjs:
+            for line in self.axesxObjs:
                 line.setVisible(False)
+            for line in self.axesyObjs:
+                line.setVisible(False)
+    '''
+    def calGridCoord(self):
+        """calc the coord and pixel position of gridx list and gridy list"""
+        gridxcoord = []
+        gridycoord = []
+        gridxpos = []
+        gridypos = []
+        if len(self.datas.axisx) < 3 or len(self.datas.axisy) < 3:
+            return (gridxpos, gridypos), (gridxcoord, gridycoord)
+
+        xfrom = sorted(self.datas.axisx)
+        xto = []
+        for i in xfrom:
+            xto.append(self.datas.axisx[i])
+        yfrom = sorted(self.datas.axisy)
+        yto = []
+        for i in yfrom:
+            yto.append(self.datas.axisy[i])
+        xmin = min(xfrom) if self.datas.gridx[0] is None else self.datas.gridx[0]
+        xmax = max(xfrom) if self.datas.gridx[1] is None else self.datas.gridx[1]
+        xstep = (xmax - xmin) / 5 if self.datas.gridx[2] is None else self.datas.gridx[2]
+        ymin = min(yfrom) if self.datas.gridy[0] is None else self.datas.gridy[0]
+        ymax = max(yfrom) if self.datas.gridy[1] is None else self.datas.gridy[1]
+        ystep = (ymax - ymin) / 5 if self.datas.gridy[2] is None else self.datas.gridy[2]
+
+        gridxcoord = list(np.arange(xmin, xmax, xstep)) + [xmax]
+        gridycoord = list(np.arange(ymin, ymax, ystep)) + [ymax]
+        gridxpos, gridypos = self.coordToPoint(gridxpos, gridypos)
+    '''
 
     def updateGrid(self):
         for line in self.gridObjs:
             self.scene.removeItem(line)
-        xorigin = sorted(self.datas.axisx)
-        xto =[]
-        for i in xorigin:
-            xto.append(self.datas.axisx[i])
-        
 
-
+        if self.gridxpos and self.gridypos:
+            for x in self.gridxpos:
+                line = QGraphicsLineItem(x, self.gridypos[0], x, self.gridypos[-1])
+                line.setPen(QPen(self.datas.gridColor, self.datas.gridLineWidth, self.datas.gridLineType))
+                self.gridObjs.append(line)
+                self.scene.addItem(line)
 
     def updateCurvePoints(self, name):
         extra = len(self.pointObjs[name]) - self.pointsModel.rowCount()
@@ -377,29 +441,28 @@ class GraphDigitGraphicsView(QGraphicsView):
     #     if newcurrent and newcurrent != self.currentCurve:
     #         self.changeCurrentCurve(newcurrent)
 
-
     def pointToCoord(self, xlist, ylist):
-        if len(self.datas.axisx)<2 or len(self.datas.axisy)<2:
-            return ([0]*len(xlist),[0]*len(xlist))
-        pixx=self.datas.axisx.keys()
-        coordx=self.datas.axisx.values()
-        pixy=self.datas.axisy.keys()
-        coordy=self.datas.axisy.values()
+        if len(self.datas.axisx) < 2 or len(self.datas.axisy) < 2:
+            return None
+        pixx = self.datas.axisx.keys()
+        coordx = self.datas.axisx.values()
+        pixy = self.datas.axisy.keys()
+        coordy = self.datas.axisy.values()
         xCoords = interp(pixx, coordx, xlist)
         yCoords = interp(pixy, coordy, ylist)
         return (xCoords, yCoords)
 
-
     def coordToPoint(self, xlist, ylist):
-        if len(self.datas.axisx)<2 or len(self.datas.axisy)<2:
-            return ([0]*len(xlist),[0]*len(xlist))
-        pixx=self.datas.axisx.keys()
-        coordx=self.datas.axisx.values()
-        pixy=self.datas.axisy.keys()
-        coordy=self.datas.axisy.values()
-        xPixs = interp(coordx,pixx, xlist)
+        if len(self.datas.axisx) < 2 or len(self.datas.axisy) < 2:
+            return None
+        pixx = self.datas.axisx.keys()
+        coordx = self.datas.axisx.values()
+        pixy = self.datas.axisy.keys()
+        coordy = self.datas.axisy.values()
+        xPixs = interp(coordx, pixx, xlist)
         yPixs = interp(coordy, pixy, ylist)
         return (xPixs, yPixs)
+
 
 class IconItem(QStandardItem):
     """for current curve"""

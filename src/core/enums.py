@@ -6,7 +6,8 @@ class OpMode(Enum):
     """current mode such as: draw point, move point, move scene etc."""
     default = "default"
     select = "select"
-    axes = "axes"
+    axesx = "axesx"
+    axesy = "axesy"
     grid = "grid"
     curve = "curve"
 

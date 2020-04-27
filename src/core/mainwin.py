@@ -47,7 +47,7 @@ class MainWin(MainWinBase):
     def zoom(self, factor=1):
         self.view.scale(factor, factor)
 
-    def setMode(self, mode, checked):
+    def changeMode(self, mode, checked):
         if not checked:
             self.view.mode = OpMode.default
         else:
@@ -57,27 +57,30 @@ class MainWin(MainWinBase):
                 self.actions[lastmode.name].setChecked(False)
         if self.view.mode == OpMode.default or self.view.mode == OpMode.select:
             self.view.setCursor(Qt.ArrowCursor)
+            self.view.showAxes(False)
         else:
             self.view.setCursor(Qt.CrossCursor)
+            if self.view.mode == OpMode.axesx or self.view.mode == OpMode.axesy:
+                self.view.showAxes(True)
+            else:
+                self.view.showAxes(False)
 
     def tst(self):
         print("test")
 
     def setupActions(self):
         self.actions["import"].triggered.connect(self.importimage)
+        self.actions["export"].triggered.connect(self.export)
         self.actions["close"].triggered.connect(self.new)
 
         self.actions["del"].triggered.connect(self.view.deleteSelectedPoint)
 
-        self.actions["select"].triggered.connect(lambda x: self.setMode(OpMode.select, x))
-        self.actions["axesx"].triggered.connect(lambda x: (self.setMode(OpMode.axesx, x),
-                                                           self.actions["showgrid"].setChecked(True)))
-        self.actions["axesy"].triggered.connect(lambda x: (self.setMode(OpMode.axesy, x),
-                                                           self.actions["showgrid"].setChecked(True)))
-        self.actions["curve"].triggered.connect(lambda x: self.setMode(OpMode.curve, x))
+        self.actions["select"].triggered.connect(lambda x: self.changeMode(OpMode.select, x))
+        self.actions["axesx"].triggered.connect(lambda x: (self.changeMode(OpMode.axesx, x)))
+        self.actions["axesy"].triggered.connect(lambda x: (self.changeMode(OpMode.axesy, x)))
+        self.actions["curve"].triggered.connect(lambda x: self.changeMode(OpMode.curve, x))
         self.actions["zoomin"].triggered.connect(lambda: self.zoom(1.1))
         self.actions["zoomout"].triggered.connect(lambda: self.zoom(0.9))
-        self.actions["showgrid"].setChecked(True)
         self.actions["showgrid"].triggered.connect(self.view.showGrid)
 
         self.actions["undo"].setEnabled(False)
@@ -138,3 +141,16 @@ class MainWin(MainWinBase):
 
         self.curveTable.doubleClicked.connect(changecurve)
         # self.pointsTable.mov
+
+    def export(self,file=None):
+        if not file:
+            file, _ = QFileDialog.getSaveFileName(
+                self, self.tr("Export Curves"), "",
+                "CSV (*.csv);;all(*.*)")  # _是filefilter
+        if file:
+            with open(file,"w",encoding="utf8") as f:
+                f.write(self.view.exportToCSVtext())
+            self.statusbar.showMessage(self.tr("export successfully."))
+        else:
+            self.statusbar.showMessage(self.tr("export failure."))
+

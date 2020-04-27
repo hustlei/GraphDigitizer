@@ -33,8 +33,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.axesxs = []
         self.axesys = []
         # grid
-        self.gridxcoord = []
-        self.gridycoord = []
         self.gridxpos = []
         self.gridypos = []
         # axes curve and point datamodel
@@ -160,8 +158,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.axesxObjs.append(item)
                 self.axesxModel.appendRow(
                     [QStandardItem("x({})".format(ptscene.x())), QStandardItem(str(x))])
-                # self.calGridCoord()
-                # self.updateGrid()
+                self.calGridCoord("x")
+                self.updateGrid()
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -175,12 +173,12 @@ class GraphDigitGraphicsView(QGraphicsView):
             y, okPressed = QInputDialog.getDouble(self, self.tr("set y coordiniate"),
                                                   self.tr("set the y coord for axis"))
             if okPressed:
-                self.axesys.append(y)
                 self.axesyObjs.append(item)
+                self.axesys.append(y)
+                self.calGridCoord("y")
+                self.updateGrid()
                 self.axesxModel.appendRow(
                     [QStandardItem("y({})".format(ptscene.y())), QStandardItem(str(y))])
-                # self.calGridCoord()
-                # self.updateGrid()
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -325,9 +323,7 @@ class GraphDigitGraphicsView(QGraphicsView):
 
         self.updateCurvePoints(name)
 
-    def showGrid(self, visible=True):
-        if self.mode is OpMode.axesx or self.mode is OpMode.axesy:
-            return
+    def showAxes(self, visible=True):
         if visible:
             for line in self.axesxObjs:
                 line.setVisible(True)
@@ -339,35 +335,70 @@ class GraphDigitGraphicsView(QGraphicsView):
             for line in self.axesyObjs:
                 line.setVisible(False)
 
-    '''
-    def calGridCoord(self):
+    def showGrid(self, visible=True):
+        if visible:
+            for line in self.gridObjs:
+                line.setVisible(True)
+        else:
+            for line in self.gridObjs:
+                line.setVisible(False)
+
+    def calGridCoord(self, mode="all"):
         """calc the coord and pixel position of gridx list and gridy list"""
-        gridxcoord = []
-        gridycoord = []
-        gridxpos = []
-        gridypos = []
-        if len(self.axesxs) < 3 or len(self.axesys) < 3:
-            return (gridxpos, gridypos), (gridxcoord, gridycoord)
+        if len(self.axesxs) < 2 or len(self.axesys) < 2:
+            self.gridxpos,self.gridypos = [],[]
+            return
 
-        xfrom = sorted(self.axesxs)
-        xto = []
-        for i in xfrom:
-            xto.append(self.axesxs[i])
-        yfrom = sorted(self.axesys)
-        yto = []
-        for i in yfrom:
-            yto.append(self.axesys[i])
-        xmin = min(xfrom) if self.datas.gridx[0] is None else self.datas.gridx[0]
-        xmax = max(xfrom) if self.datas.gridx[1] is None else self.datas.gridx[1]
-        xstep = (xmax - xmin) / 5 if self.datas.gridx[2] is None else self.datas.gridx[2]
-        ymin = min(yfrom) if self.datas.gridy[0] is None else self.datas.gridy[0]
-        ymax = max(yfrom) if self.datas.gridy[1] is None else self.datas.gridy[1]
-        ystep = (ymax - ymin) / 5 if self.datas.gridy[2] is None else self.datas.gridy[2]
+        if mode in ("x","all"):
+            axesxpos = []
+            for o in self.axesxObjs:
+                axesxpos.append(o.line().x1())
+            xmin = min(self.axesxs) if self.datas.gridx[0] is None else self.datas.gridx[0]
+            xmax = max(self.axesxs) if self.datas.gridx[1] is None else self.datas.gridx[1]
+            if self.datas.gridx[2] is None:
+                if len(self.axesxObjs) == 2:
+                    xstep = (xmax - xmin) / 5
+                else:
+                    axesStep = self.axesxs[1] - self.axesxs[0]
+                    for i in range(2,len(self.axesxs)):
+                        st = self.axesxs[i] - self.axesxs[i-1]
+                        if axesStep > st:
+                            axesStep = st
+                    xstep = axesStep
+            else:
+                xstep = self.datas.gridx[2]
+            gridxcoord = list(np.arange(xmin, xmax, xstep)) + [xmax]
+        else:
+            gridxcoord = []
 
-        gridxcoord = list(np.arange(xmin, xmax, xstep)) + [xmax]
-        gridycoord = list(np.arange(ymin, ymax, ystep)) + [ymax]
-        gridxpos, gridypos = self.coordToPoint(gridxpos, gridypos)
-    '''
+        if mode in ("y","all"):
+            axesy = []
+            for o in self.axesyObjs:
+                axesy.append(o.line().y1())
+            ymin = min(self.axesys) if self.datas.gridy[0] is None else self.datas.gridy[0]
+            ymax = max(self.axesys) if self.datas.gridy[1] is None else self.datas.gridy[1]
+            if self.datas.gridy[2] is None:
+                if len(self.axesyObjs) == 2:
+                    ystep = (ymax - ymin) / 5
+                else:
+                    axesStep = self.axesys[1] - self.axesys[0]
+                    for i in range(2,len(self.axesys)):
+                        st = self.axesys[i] - self.axesys[i-1]
+                        if axesStep > st:
+                            axesStep = st
+                    ystep = axesStep
+            else:
+                ystep = self.datas.gridy[2]
+            gridycoord = list(np.arange(ymin, ymax, ystep)) + [ymax]
+        else:
+            gridycoord = []
+
+        xpos,ypos = self.coordToPoint(gridxcoord, gridycoord)
+        if mode in ["x", "all"]:
+            self.gridxpos=xpos
+        if mode in ["y", "all"]:
+            self.gridypos=ypos
+        return
 
     def updateGrid(self):
         for line in self.gridObjs:
@@ -376,6 +407,11 @@ class GraphDigitGraphicsView(QGraphicsView):
         if self.gridxpos and self.gridypos:
             for x in self.gridxpos:
                 line = QGraphicsLineItem(x, self.gridypos[0], x, self.gridypos[-1])
+                line.setPen(QPen(self.datas.gridColor, self.datas.gridLineWidth, self.datas.gridLineType))
+                self.gridObjs.append(line)
+                self.scene.addItem(line)
+            for y in self.gridypos:
+                line = QGraphicsLineItem(self.gridxpos[0], y, self.gridxpos[-1], y)
                 line.setPen(QPen(self.datas.gridColor, self.datas.gridLineWidth, self.datas.gridLineType))
                 self.gridObjs.append(line)
                 self.scene.addItem(line)
@@ -401,6 +437,36 @@ class GraphDigitGraphicsView(QGraphicsView):
             xlist, ylist = self.pointToCoord([pt.x()], [pt.y()])
             self.pointsModel.item(i, 1).setText(str(round(xlist[0],6)))
             self.pointsModel.item(i, 2).setText(str(round(ylist[0],6)))
+
+    def calcCurveCoords(self):
+        """calculate datas for export"""
+        data = {}
+        for curve in self.pointObjs:
+            data[curve]=([],[])
+            for item in self.pointObjs[curve]:
+                data[curve][0].append(item.x())
+                data[curve][1].append(item.y())
+            data[curve] = self.pointToCoord(data[curve][0], data[curve][1])
+        return data
+
+    def exportToCSVtext(self):
+        """return text in csv format, like following:
+        curve1
+        x,1,2,3
+        y,2,3,4
+        """
+        text = ""
+        data = self.calcCurveCoords()
+        for curve in data:
+            text+=curve
+            text+="\nx,"
+            for x in data[curve][0]:
+                text+=str(x)+','
+            text+="\ny,"
+            for y in data[curve][1]:
+                text+=str(y)+','
+            text+="\n"
+        return text
 
     def changeCurrentCurve(self, name=None):
         if name != self.currentCurve or name == None:

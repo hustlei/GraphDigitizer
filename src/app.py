@@ -4,7 +4,7 @@
 
 App class wrapped a QApplication, which will show splash and start gui.
 
-Copyright (c) 2019 lileilei <hustlei@sina.cn>
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
 """
 
 import sys

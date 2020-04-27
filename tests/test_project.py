@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """test for project data.
 
-Copyright (c) 2019 lileilei <hustlei@sina.cn>
+Copyright (c) 2020lileilei <hustlei@sina.cn>
 """
 
 from pytest import fixture
 from core.project import ProjData
+
 
 @fixture(scope="function")
 def data():
@@ -14,7 +15,7 @@ def data():
     return ProjData()
 
 
-def test_project(data,tmpdir):
+def test_project(data, tmpdir):
     """Test for open and save for project
     """
     f = tmpdir.join("new1.digi").ensure()

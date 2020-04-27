@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+"""Dialog for get two double values
+
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
+"""
+
 from PyQt5.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QGridLayout, QLabel, QLineEdit, QCheckBox,
                              QPushButton)
 from PyQt5.QtCore import Qt, QPointF
@@ -20,7 +26,7 @@ class Axesdialog(QDialog):
         super().__init__()
         self.setWindowFlags(Qt.Tool | Qt.WindowStaysOnTopHint)
         self.setWindowTitle(self.tr("axes coordinate"))
-        self.resize(400,180)
+        self.resize(400, 180)
         self.initUI()
 
     def initUI(self):
@@ -39,8 +45,8 @@ class Axesdialog(QDialog):
         okBtn.setDefault(True)
         cancelBtn = QPushButton(self.tr("Cancel"))
 
-        formLayout.addRow(self.xCheckBox,self.xLineEdit)
-        formLayout.addRow(self.yCheckBox,self.yLineEdit)
+        formLayout.addRow(self.xCheckBox, self.xLineEdit)
+        formLayout.addRow(self.yCheckBox, self.yLineEdit)
         hboxLayout.addStretch(1)
         hboxLayout.addWidget(okBtn)
         hboxLayout.addWidget(cancelBtn)
@@ -97,9 +103,9 @@ class Axesdialog(QDialog):
                     self.yLineEdit.setFocus()
                     self.yLineEdit.selectAll()
                     return
-        Axesdialog.coordgeted = (x,y)
+        Axesdialog.coordgeted = (x, y)
         self.close()
-        return (x,y)
+        return (x, y)
 
     def cancel(self):
         self.close()

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Base class for Mainwin
 
-Copyright (c) 2019 lileilei <hustlei@sina.cn>
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
 """
 from PyQt5.QtCore import Qt, QSize, QPoint, QPointF
 from PyQt5.QtGui import QKeySequence, QIcon
@@ -64,8 +64,8 @@ class MainWinBase(QMainWindow):
         #                                 ':appres.img/NewDocument.png')
         self.actions["import"] = createAct(self.tr("&Import Image"), self.tr("Import Image"), None,
                                            ':appres.img/importimage.png')
-        self.actions["replaceimage"] = createAct(self.tr("&Replace Image"),
-                                                 self.tr("Replace Image"), None, ':appres.img/replaceimage.png')
+        self.actions["replaceimage"] = createAct(self.tr("&Replace Image"), self.tr("Replace Image"), None,
+                                                 ':appres.img/replaceimage.png')
         self.actions["open"] = createAct(self.tr("&Open Project"),
                                          self.tr("Open") + keys2str(QKeySequence.Open), QKeySequence.Open,
                                          ':appres.img/open.png')
@@ -96,23 +96,37 @@ class MainWinBase(QMainWindow):
         self.actions["zoomin"] = createAct(self.tr("&ZoomIn"), self.tr("Zoom In"), "Ctrl++", ':appres.img/zoomin.png')
         self.actions["zoomout"] = createAct(self.tr("&ZoomOut"), self.tr("Zoom Out"), "Ctrl+-",
                                             ':appres.img/zoomout.png')
-        self.actions["showgrid"] = createAct(self.tr("Show Axes &Grid"), self.tr("Show AxesGrid"), None,
+        self.actions["showgrid"] = createAct(self.tr("Show Axes &Grid"),
+                                             self.tr("Show AxesGrid"),
+                                             None,
                                              ':appres.img/grid.png',
                                              checkable=True)
-        self.actions["select"] = createAct(self.tr("Select Mode"), self.tr("Select Mode"), None,
-                                           ':appres.img/select.png', checkable=True)
-        self.actions["axesx"] = createAct(self.tr("Set x axis postions"), self.tr("Set x axis position"), None,
-                                         ':appres.img/axesx.png', checkable=True)
-        self.actions["axesy"] = createAct(self.tr("Set y axis postions"), self.tr("Set y axis position"), None,
-                                         ':appres.img/axesy.png', checkable=True)
-        self.actions["curve"] = createAct(self.tr("&AddCurve"), self.tr("Add Curve"), None, ':appres.img/curve.png',
+        self.actions["select"] = createAct(self.tr("Select Mode"),
+                                           self.tr("Select Mode"),
+                                           None,
+                                           ':appres.img/select.png',
+                                           checkable=True)
+        self.actions["axesx"] = createAct(self.tr("Set x axis postions"),
+                                          self.tr("Set x axis position"),
+                                          None,
+                                          ':appres.img/axesx.png',
+                                          checkable=True)
+        self.actions["axesy"] = createAct(self.tr("Set y axis postions"),
+                                          self.tr("Set y axis position"),
+                                          None,
+                                          ':appres.img/axesy.png',
+                                          checkable=True)
+        self.actions["curve"] = createAct(self.tr("&AddCurve"),
+                                          self.tr("Add Curve"),
+                                          None,
+                                          ':appres.img/curve.png',
                                           checkable=True)
         self.actions["del"] = createAct(self.tr("&del point or curve"), self.tr("delete"), QKeySequence.Delete,
                                         ':appres.img/delete.png')
-        self.actions["addcurve"] = createAct(self.tr("add a new curve"), self.tr("add a new curve"), QKeySequence.Delete,
-                                        ':appres.img/new.png')
-        self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change curve name"), QKeySequence.Delete,
-                                        ':appres.img/edit.png')
+        self.actions["addcurve"] = createAct(self.tr("add a new curve"), self.tr("add a new curve"),
+                                             QKeySequence.Delete, ':appres.img/new.png')
+        self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change curve name"),
+                                                QKeySequence.Delete, ':appres.img/edit.png')
 
         # self.actions["DisableQss"] = createAct(self.tr("&DisableQss"), self.tr("DisableQss"), checkable=True)
         # self.actions["DisableQss"].setChecked(False)
@@ -264,7 +278,7 @@ class MainWinBase(QMainWindow):
         self.docktabwidget = QTabWidget(self.docks["curves"])
         self.docks["curves"].setWidget(self.docktabwidget)
         self.docktabwidget.setTabPosition(QTabWidget.South)
-        self.axesTab = QSplitter(Qt.Vertical)#QScrollArea()
+        self.axesTab = QSplitter(Qt.Vertical)  # QScrollArea()
         self.curveTab = QSplitter(Qt.Vertical)
         self.docktabwidget.addTab(self.axesTab, "axes")
         self.docktabwidget.addTab(self.curveTab, "curve")
@@ -277,10 +291,10 @@ class MainWinBase(QMainWindow):
 
         self.curveTable = QTableView()
         self.pointsTable = QTableView()
-        #self.axesTab.setWidgetResizable(True)
+        # self.axesTab.setWidgetResizable(True)
         w = QWidget()
         lay = QVBoxLayout()
-        lay.setContentsMargins(0,0,0,0)
+        lay.setContentsMargins(0, 0, 0, 0)
         self.curvePanelToolbar = QToolBar(self.curveTab)
         lay.addWidget(self.curvePanelToolbar)
         lay.addWidget(self.curveTable)
@@ -298,7 +312,7 @@ class MainWinBase(QMainWindow):
         self.actions["showcurves"].triggered.connect(self.docks["curves"].setVisible)
         self.themeCombo.currentTextChanged.connect(qApp.setStyle)
 
-    ## misc func
+    # misc func
     def updatePixelCoordStatus(self, ptorx, y=None):
         if isinstance(ptorx, QPoint) or isinstance(ptorx, QPointF):
             self.status["pixel"].setText("Pixel Coordinate: {},{}".format(ptorx.x(), ptorx.y()))

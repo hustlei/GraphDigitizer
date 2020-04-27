@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+"""enums for OperationMode of app and PointType of drawing points.
 
-from enum import Enum,unique
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
+"""
+
+from enum import Enum, unique
+
 
 @unique
 class OpMode(Enum):
@@ -10,6 +16,7 @@ class OpMode(Enum):
     axesy = "axesy"
     grid = "grid"
     curve = "curve"
+
 
 @unique
 class PointType(Enum):

@@ -1,8 +1,7 @@
-#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """Data for project of the app
 
-including all data when save project to file.
+some setting datas for project.
 
 Copyright (c) 2019 lileilei <hustlei@sina.cn>
 """
@@ -13,26 +12,28 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 from .enums import PointType
 
+
 class Curve():
     def __init__(self):
-        self.points = [] # scene coord for open project
+        self.points = []  # scene coord for open project
         self.pointType = PointType.cross
         self.pointColor = Qt.blue
         self.lineWidth = 1
 
+
 class ProjData():
     def __init__(self, imgpath=""):
-        #chart image
+        # chart image
         self.img = None
         self.imgScale = 1
         self.imgOriginSize = None
         self.imgSize = None
         # axis coords
-        self.axisx = {} #{0:0,1:1}
-        self.axisy = {} #{0:0,1:1}
+        self.axisx = {}  # {0:0,1:1}
+        self.axisy = {}  # {0:0,1:1}
         # grid
-        self.gridx = [None, None, None] #min max step
-        self.gridy = [None, None, None] #min max step
+        self.gridx = [None, None, None]  # min max step
+        self.gridy = [None, None, None]  # min max step
         self.gridLineType = Qt.DotLine
         self.gridLineWidth = 1
         self.gridColor = Qt.gray
@@ -52,11 +53,10 @@ class ProjData():
                 self.scaleImg()
 
     def scaleImg(self, imgScale=None):
-        if imgScale and imgScale>0:
+        if imgScale and imgScale > 0:
             self.imgScale = imgScale
-        self.imgSize = self.imgOriginSize*self.imgScale
-        self.img = self.img.scaled(self.imgSize, aspectRatioMode=Qt.KeepAspectRatio) #按比例缩放：
-
+        self.imgSize = self.imgOriginSize * self.imgScale
+        self.img = self.img.scaled(self.imgSize, aspectRatioMode=Qt.KeepAspectRatio)  # 按比例缩放：
 
     @staticmethod
     def open(file):
@@ -64,6 +64,6 @@ class ProjData():
             data = dill.load(f)
         return data
 
-    def save(self,file):
+    def save(self, file):
         with open(file, 'wb') as f:
             dill.dump(self, f)

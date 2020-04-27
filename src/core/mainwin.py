@@ -1,3 +1,9 @@
+#!/usr/bin/python3
+"""Mainwindow for app
+
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
+"""
+
 import os
 
 from PyQt5.QtCore import Qt, QModelIndex
@@ -24,7 +30,7 @@ class MainWin(MainWinBase):
         self.updatePixelCoordStatus(pt.x(), pt.y())
         self.updatePointCoordStatus(ptscene)
 
-    ## action funcs
+    # action funcs
     def new(self):
         """create new GraphDigitGrapicsView"""
         self.view = GraphDigitGraphicsView()
@@ -33,7 +39,8 @@ class MainWin(MainWinBase):
         if not file:
             file, _ = QFileDialog.getOpenFileName(
                 self, self.tr("Import Image"), "",
-                "Images (*.png *.jpg *.jpep *.gif);;Bitmap Image(*.bmp *.xpm *.xbm *.pbm *.pgm);;all(*.*)")  # _是filefilter
+                "Images (*.png *.jpg *.jpep *.gif);;Bitmap Image(*.bmp *.xpm *.xbm *.pbm *.pgm);;all(*.*)"
+            )  # _是filefilter
         if os.path.exists(file):
             self.statusbar.showMessage(self.tr("importing image..."))
             ok = self.view.setGraphImage(file)
@@ -127,8 +134,7 @@ class MainWin(MainWinBase):
             return name
 
         self.actions["addcurve"].triggered.connect(lambda: self.view.addCurve(nextName(selectedCurve())))
-        self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(
-            name=selectedCurve()))
+        self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(name=selectedCurve()))
 
         def changecurve(index):
             if index.column() == 0:
@@ -142,15 +148,13 @@ class MainWin(MainWinBase):
         self.curveTable.doubleClicked.connect(changecurve)
         # self.pointsTable.mov
 
-    def export(self,file=None):
+    def export(self, file=None):
         if not file:
-            file, _ = QFileDialog.getSaveFileName(
-                self, self.tr("Export Curves"), "",
-                "CSV (*.csv);;all(*.*)")  # _是filefilter
+            file, _ = QFileDialog.getSaveFileName(self, self.tr("Export Curves"), "",
+                                                  "CSV (*.csv);;all(*.*)")  # _是filefilter
         if file:
-            with open(file,"w",encoding="utf8") as f:
+            with open(file, "w", encoding="utf8") as f:
                 f.write(self.view.exportToCSVtext())
             self.statusbar.showMessage(self.tr("export successfully."))
         else:
             self.statusbar.showMessage(self.tr("export failure."))
-

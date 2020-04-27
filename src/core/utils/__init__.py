@@ -1,5 +1,11 @@
+# -*- coding: utf-8 -*-
+"""util for basic tools, such as algorithm,specical string operations.
+
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
+"""
 
 import re
+
 
 def incDigitStr(digitstr):
     """if '123' given, return '124'
@@ -7,9 +13,10 @@ def incDigitStr(digitstr):
     if digitstr == "":
         return "1"
     try:
-        return str(int(digitstr)+1)
+        return str(int(digitstr) + 1)
     except:
         return digitstr
+
 
 def nextName(name):
     """if 'd1' given, return 'd2'
@@ -18,7 +25,7 @@ def nextName(name):
     if not isinstance(name, str):
         return None
     if not name[-1].isdigit():
-        return name+"1"
+        return name + "1"
     return re.sub(r"\d+$", lambda matchobj: incDigitStr(matchobj.group(0)), name)
 
 

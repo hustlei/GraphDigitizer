@@ -1,9 +1,10 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """test scripts for Program
 
 using pytest pytest-qt to test modules of project.
 
-Copyright (c) 2019 lileilei <hustlei@sina.cn>
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
 """
 
 import sys

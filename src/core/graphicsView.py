@@ -1,12 +1,21 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+"""GraphDigitGraphicsView, core widget for app
+
+display, operate graph axes and curves on scene of GraphDigitGraphicsView.
+operate digited data.
+
+Copyright (c) 2020 lileilei <hustlei@sina.cn>
+"""
+
 import os
 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen
-from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem,
-                             QGraphicsLineItem, QInputDialog, QLineEdit)
+from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem, QGraphicsLineItem,
+                             QInputDialog, QLineEdit)
 
-from core.dialogs.pick import Axesdialog
 from core.enums import OpMode, PointType
 from core.graphicsItems import QGraphicsPointItem
 from core.project import ProjData
@@ -145,7 +154,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             pass
             # super().mousePressEvent(event)
         elif self.mode is OpMode.axesx:
-            item = QGraphicsLineItem(ptscene.x(), self.scene.sceneRect().y(), ptscene.x(),
+            item = QGraphicsLineItem(ptscene.x(),
+                                     self.scene.sceneRect().y(), ptscene.x(),
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
@@ -156,8 +166,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             if okPressed:
                 self.axesxs.append(x)
                 self.axesxObjs.append(item)
-                self.axesxModel.appendRow(
-                    [QStandardItem("x({})".format(ptscene.x())), QStandardItem(str(x))])
+                self.axesxModel.appendRow([QStandardItem("x({})".format(ptscene.x())), QStandardItem(str(x))])
                 self.calGridCoord("x")
                 self.updateGrid()
                 item.setSelected(True)
@@ -177,8 +186,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.axesys.append(y)
                 self.calGridCoord("y")
                 self.updateGrid()
-                self.axesxModel.appendRow(
-                    [QStandardItem("y({})".format(ptscene.y())), QStandardItem(str(y))])
+                self.axesxModel.appendRow([QStandardItem("y({})".format(ptscene.y())), QStandardItem(str(y))])
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -188,8 +196,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             ptitem.pointColor = Qt.blue
             ptitem.linewidth = 1
             ptitem.setPos(ptscene)
-            ptitem.setFlags(
-                QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+            ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
+                            | QGraphicsItem.ItemIsMovable)
 
             if self.currentCurve not in self.pointObjs:
                 self.pointObjs[self.currentCurve] = []
@@ -346,10 +354,10 @@ class GraphDigitGraphicsView(QGraphicsView):
     def calGridCoord(self, mode="all"):
         """calc the coord and pixel position of gridx list and gridy list"""
         if len(self.axesxs) < 2 or len(self.axesys) < 2:
-            self.gridxpos,self.gridypos = [],[]
+            self.gridxpos, self.gridypos = [], []
             return
 
-        if mode in ("x","all"):
+        if mode in ("x", "all"):
             axesxpos = []
             for o in self.axesxObjs:
                 axesxpos.append(o.line().x1())
@@ -360,8 +368,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                     xstep = (xmax - xmin) / 5
                 else:
                     axesStep = self.axesxs[1] - self.axesxs[0]
-                    for i in range(2,len(self.axesxs)):
-                        st = self.axesxs[i] - self.axesxs[i-1]
+                    for i in range(2, len(self.axesxs)):
+                        st = self.axesxs[i] - self.axesxs[i - 1]
                         if axesStep > st:
                             axesStep = st
                     xstep = axesStep
@@ -371,7 +379,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         else:
             gridxcoord = []
 
-        if mode in ("y","all"):
+        if mode in ("y", "all"):
             axesy = []
             for o in self.axesyObjs:
                 axesy.append(o.line().y1())
@@ -382,8 +390,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                     ystep = (ymax - ymin) / 5
                 else:
                     axesStep = self.axesys[1] - self.axesys[0]
-                    for i in range(2,len(self.axesys)):
-                        st = self.axesys[i] - self.axesys[i-1]
+                    for i in range(2, len(self.axesys)):
+                        st = self.axesys[i] - self.axesys[i - 1]
                         if axesStep > st:
                             axesStep = st
                     ystep = axesStep
@@ -393,11 +401,11 @@ class GraphDigitGraphicsView(QGraphicsView):
         else:
             gridycoord = []
 
-        xpos,ypos = self.coordToPoint(gridxcoord, gridycoord)
+        xpos, ypos = self.coordToPoint(gridxcoord, gridycoord)
         if mode in ["x", "all"]:
-            self.gridxpos=xpos
+            self.gridxpos = xpos
         if mode in ["y", "all"]:
-            self.gridypos=ypos
+            self.gridypos = ypos
         return
 
     def updateGrid(self):
@@ -435,14 +443,14 @@ class GraphDigitGraphicsView(QGraphicsView):
             pt = self.pointObjs[name][i]
             self.pointsModel.item(i, 0).setText(str(i + 1))
             xlist, ylist = self.pointToCoord([pt.x()], [pt.y()])
-            self.pointsModel.item(i, 1).setText(str(round(xlist[0],6)))
-            self.pointsModel.item(i, 2).setText(str(round(ylist[0],6)))
+            self.pointsModel.item(i, 1).setText(str(round(xlist[0], 6)))
+            self.pointsModel.item(i, 2).setText(str(round(ylist[0], 6)))
 
     def calcCurveCoords(self):
         """calculate datas for export"""
         data = {}
         for curve in self.pointObjs:
-            data[curve]=([],[])
+            data[curve] = ([], [])
             for item in self.pointObjs[curve]:
                 data[curve][0].append(item.x())
                 data[curve][1].append(item.y())
@@ -458,18 +466,18 @@ class GraphDigitGraphicsView(QGraphicsView):
         text = ""
         data = self.calcCurveCoords()
         for curve in data:
-            text+=curve
-            text+="\nx,"
+            text += curve
+            text += "\nx,"
             for x in data[curve][0]:
-                text+=str(x)+','
-            text+="\ny,"
+                text += str(x) + ','
+            text += "\ny,"
             for y in data[curve][1]:
-                text+=str(y)+','
-            text+="\n"
+                text += str(y) + ','
+            text += "\n"
         return text
 
     def changeCurrentCurve(self, name=None):
-        if name != self.currentCurve or name == None:
+        if name != self.currentCurve or name is None:
             self.currentCurve = name
             self.updateCurvePoints(name)
 
@@ -555,7 +563,6 @@ class GraphDigitGraphicsView(QGraphicsView):
 
 class IconItem(QStandardItem):
     """for current curve"""
-
     def __init__(self):
         super().__init__()
         self.setCheckable(False)

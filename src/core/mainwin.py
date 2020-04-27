@@ -6,13 +6,16 @@ Copyright (c) 2020 lileilei <hustlei@sina.cn>
 
 import os
 
-from PyQt5.QtCore import Qt, QModelIndex
-from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate
+from PyQt5.QtCore import Qt, QModelIndex, QMetaEnum
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInputDialog, QDialog, QLabel, QFormLayout, \
+    QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox
 
 from core.graphicsView import GraphDigitGraphicsView
 from .enums import OpMode
 from .mainwinbase import MainWinBase
 from .utils import nextName
+from .widgets.custom import QLineComboBox
 
 
 class MainWin(MainWinBase):
@@ -93,6 +96,9 @@ class MainWin(MainWinBase):
         self.actions["undo"].setEnabled(False)
         self.actions["redo"].setEnabled(False)
 
+        self.actions["scalegraph"].triggered.connect(self.scalegraph)
+        self.actions["gridsetting"].triggered.connect(self.gridsetting)
+
         self.axesxTable.setModel(self.view.axesxModel)
         self.axesyTable.setModel(self.view.axesyModel)
         self.curveTable.setModel(self.view.curveModel)
@@ -147,6 +153,79 @@ class MainWin(MainWinBase):
 
         self.curveTable.doubleClicked.connect(changecurve)
         # self.pointsTable.mov
+
+    def scalegraph(self):
+        scale,ok = QInputDialog.getDouble(self, self.tr("scale the graph"),
+                                           self.tr("set the scale value:"), 1, 0.01, 100, 2)
+        if ok:
+            self.view.resizeGraphImage(scale)
+
+    def gridsetting(self):
+        dialog=QDialog(self)
+        layout=QVBoxLayout(dialog)
+
+        xgroup=QGroupBox(self.tr("grid parameter for axis x"),self)
+        form=QFormLayout(xgroup)
+        spinboxxmin = QDoubleSpinBox(dialog)
+        spinboxxmax = QDoubleSpinBox(dialog)
+        spinboxxstep = QDoubleSpinBox(dialog)
+        spinboxxmin.setValue(0)
+        spinboxxmax.setValue(1)
+        spinboxxstep.setValue(0.1)
+        form.addRow(self.tr("minimum value:"), spinboxxmin)
+        form.addRow(self.tr("maximum value:"), spinboxxmax)
+        form.addRow(self.tr("step value:"), spinboxxstep)
+
+        ygroup=QGroupBox(self.tr("grid parameter for axis y"),self)
+        form=QFormLayout(ygroup)
+        spinboxymin = QDoubleSpinBox(dialog)
+        spinboxymax = QDoubleSpinBox(dialog)
+        spinboxystep = QDoubleSpinBox(dialog)
+        spinboxymin.setValue(0)
+        spinboxymax.setValue(1)
+        spinboxystep.setValue(0.1)
+        form.addRow(self.tr("minimum value:"), spinboxymin)
+        form.addRow(self.tr("maximum value:"), spinboxymax)
+        form.addRow(self.tr("step value:"), spinboxystep)
+
+        hbox1=QHBoxLayout()
+        hbox1.addWidget(xgroup)
+        hbox1.addWidget(ygroup)
+        hbox2=QHBoxLayout()
+        spinboxWidth = QSpinBox(dialog)
+        spinboxWidth.setValue(1)
+        lineCombo = QLineComboBox()
+        lineCombo.addItem(self.tr("SolidLine"),Qt.SolidLine)
+        lineCombo.addItem(self.tr("DashLine"),Qt.DashLine)
+        lineCombo.addItem(self.tr("DotLine"),Qt.DotLine)
+        lineCombo.addItem(self.tr("DashDotLine"),Qt.DashDotLine)
+        lineCombo.addItem(self.tr("DashDotDotLine"),Qt.DashDotDotLine)
+        lineCombo.setCurrentIndex(1)
+        colorCombo = QComboBox()
+        colorCombo.addItems(QColor.colorNames())
+        colorCombo.setCurrentText("red")
+        hbox2.addWidget(QLabel("GridWidth"))
+        hbox2.addWidget(spinboxWidth)
+        hbox2.addWidget(QLabel("LineType"))
+        hbox2.addWidget(lineCombo)
+        hbox2.addWidget(QLabel("LineColor"))
+        hbox2.addWidget(colorCombo)
+
+        buttonBox=QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, dialog)
+
+        layout.addLayout(hbox1)
+        layout.addLayout(hbox2)
+        layout.addWidget(buttonBox)
+
+        buttonBox.accepted.connect(dialog.accept)
+        buttonBox.rejected.connect(dialog.reject)
+
+        if dialog.exec() == QDialog.Accepted:
+            self.view.datas.gridx=[spinboxxmin.value(),spinboxxmax.value(),spinboxxstep.value()]
+            self.view.datas.gridy=[spinboxymin.value(),spinboxymax.value(),spinboxystep.value()]
+            self.view.datas.gridLineWidth=spinboxWidth.value()
+            self.view.datas.gridColor=QColor(colorCombo.currentText())
+            self.view.datas.gridLineType=lineCombo.currentData()
 
     def export(self, file=None):
         if not file:

@@ -89,10 +89,16 @@ class GraphDigitGraphicsView(QGraphicsView):
         if os.path.exists(imgfile):
             self.datas.setImgpath(imgfile)
             self.graphicsPixmapItem.setPixmap(self.datas.img)
+            self.scene.setSceneRect(0,0,self.datas.img.width(),self.datas.img.height())
             self.scene.clearSelection()  # 【清除选择】
             return True
         else:
             return False
+
+    def resizeGraphImage(self, scale=1):
+        self.graphicsPixmapItem.setScale(scale)
+        self.scene.setSceneRect(0, 0, self.datas.img.width()*scale, self.datas.img.height()*scale)
+        self.scene.clearSelection()  # 【清除选择】
 
     def addCurve(self, name=None):
         if not name:

@@ -128,6 +128,11 @@ class MainWinBase(QMainWindow):
         self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change curve name"),
                                                 QKeySequence.Delete, ':appres.img/edit.png')
 
+        self.actions["scalegraph"] = createAct(self.tr("set graph image scale"), self.tr("set graph image scale"), None,
+                                               ":appres.img/resizeimage.png")
+        self.actions["gridsetting"] = createAct(self.tr("grid settings"), self.tr("set grid range and step"), None,
+                                               ":appres.img/gridsetting.png")
+
         # self.actions["DisableQss"] = createAct(self.tr("&DisableQss"), self.tr("DisableQss"), checkable=True)
         # self.actions["DisableQss"].setChecked(False)
         # self.actions["ShowColor"] = createAct(self.tr("&ColorPanel"),
@@ -245,6 +250,11 @@ class MainWinBase(QMainWindow):
         self.toolbars["Display"].addAction(self.actions["zoomin"])
         self.toolbars["Display"].addAction(self.actions["zoomout"])
         self.toolbars["Display"].addAction(self.actions["showgrid"])
+
+        self.toolbars["Setting"] = QToolBar(self.tr("Setting"))
+        self.toolbars["Setting"].addAction(self.actions["scalegraph"])
+        self.toolbars["Setting"].addAction(self.actions["gridsetting"])
+        self.toolbars["Setting"].addAction(self.actions["config"])
 
         self.toolbars["View"] = QToolBar(self.tr("View"))
         self.toolbars["View"].addAction(self.actions["showcurves"])

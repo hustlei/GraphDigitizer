@@ -21,6 +21,7 @@
     <file alias="find.png">img/find.png</file>
     <file alias="findnext.png">img/findnext.png</file>
     <file alias="grid.png">img/grid.png</file>
+    <file alias="gridsetting.png">img/gridsetting.png</file>
     <file alias="Help.png">img/Help.png</file>
     <file alias="History.png">img/History.png</file>
     <file alias="home.png">img/home.png</file>
@@ -46,6 +47,7 @@
     <file alias="refresh_blue.png">img/refresh_blue.png</file>
     <file alias="RepeatHS.png">img/RepeatHS.png</file>
     <file alias="replaceimage.png">img/replaceimage.png</file>
+    <file alias="resizeimage.png">img/resizeimage.png</file>
     <file alias="save.png">img/save.png</file>
     <file alias="SaveAs.png">img/SaveAs.png</file>
     <file alias="select.png">img/select.png</file>
@@ -62,6 +64,7 @@
     <file alias="view3col.png">img/view3col.png</file>
     <file alias="yes.png">img/yes.png</file>
     <file alias="zoomin.png">img/zoomin.png</file>
+    <file alias="zoommode.png">img/zoommode.png</file>
     <file alias="zoomout.png">img/zoomout.png</file>
 </qresource>
 </RCC>

@@ -24,10 +24,9 @@ class Curve():
 class ProjData():
     def __init__(self, imgpath=""):
         # chart image
-        self.img = None
+        self.img = None # QPixmap, set by setImgpath
         self.imgScale = 1
         self.imgOriginSize = None
-        self.imgSize = None
         # axis coords
         self.axisx = {}  # {0:0,1:1}
         self.axisy = {}  # {0:0,1:1}

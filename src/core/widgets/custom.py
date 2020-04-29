@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QObject, QSize, Qt
-from PyQt5.QtGui import QPen
-from PyQt5.QtWidgets import QStyle, QComboBox, QAbstractItemDelegate
+from PyQt5.QtGui import QPen, QColor
+from PyQt5.QtWidgets import QStyle, QComboBox, QAbstractItemDelegate, QStyledItemDelegate
 
 
 class QPenStyleDelegate(QAbstractItemDelegate):
@@ -33,6 +33,26 @@ class QLineComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setItemDelegate(QPenStyleDelegate())
+
+class QColorComboBox(QComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        for i, clr in enumerate(QColor.colorNames()):
+            self.addItem(clr, QColor(clr))
+            self.model().item(i).setBackground(QColor(clr))
+
+# class MyQStyledItemDelegate(QStyledItemDelegate):
+#     def __init__(self, height, parent=None):
+#         super().__init__(height,parent)
+#         self.m_Height=height
+#
+#     def sizeHint(self, option, index):
+#         size = QStyledItemDelegate.sizeHint(option, index)
+#         size.setHeight(self.m_Height)
+#         return size
+#
+#     def paint(painter, option, index):
+#         super().paint(painter, option, index)
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import *

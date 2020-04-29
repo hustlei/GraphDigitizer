@@ -6,16 +6,18 @@ Copyright (c) 2020 lileilei <hustlei@sina.cn>
 
 import os
 
+import dill
 from PyQt5.QtCore import Qt, QModelIndex, QMetaEnum
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInputDialog, QDialog, QLabel, QFormLayout, \
-    QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox
+    QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox, QMessageBox, qApp
 
 from core.graphicsView import GraphDigitGraphicsView
 from .enums import OpMode
 from .mainwinbase import MainWinBase
 from .utils import nextName
-from .widgets.custom import QLineComboBox
+from .utils.fileop import FileOp
+from .widgets.custom import QLineComboBox, QColorComboBox
 
 
 class MainWin(MainWinBase):
@@ -27,7 +29,9 @@ class MainWin(MainWinBase):
 
         # actions
         self.view.sigMouseMovePoint.connect(self.slotMouseMovePoint)
+        self.fileop = FileOp()
         self.setupActions()
+        self.file = None
 
     def slotMouseMovePoint(self, pt, ptscene):
         self.updatePixelCoordStatus(pt.x(), pt.y())
@@ -36,7 +40,9 @@ class MainWin(MainWinBase):
     # action funcs
     def new(self):
         """create new GraphDigitGrapicsView"""
-        self.view = GraphDigitGraphicsView()
+        self.view.proj.resetData(True)
+        self.view.resetview()
+        self.file = None
 
     def importimage(self, file=None):  # _参数用于接收action的event参数,bool类型
         if not file:
@@ -47,7 +53,8 @@ class MainWin(MainWinBase):
         if os.path.exists(file):
             self.statusbar.showMessage(self.tr("importing image..."))
             ok = self.view.setGraphImage(file)
-            if ok:
+            add2tmp = self.fileop.addImage(file)
+            if ok and add2tmp:
                 self.statusbar.showMessage(self.tr("import successfully"))
             else:
                 self.statusbar.showMessage(self.tr("import failed"))
@@ -72,15 +79,16 @@ class MainWin(MainWinBase):
             self.view.setCursor(Qt.CrossCursor)
             if self.view.mode == OpMode.axesx or self.view.mode == OpMode.axesy:
                 self.view.showAxes(True)
+                self.docktabwidget.setCurrentIndex(0)
             else:
                 self.view.showAxes(False)
-
-    def tst(self):
-        print("test")
+                self.docktabwidget.setCurrentIndex(1)
 
     def setupActions(self):
         self.actions["import"].triggered.connect(self.importimage)
         self.actions["export"].triggered.connect(self.export)
+        self.actions["open"].triggered.connect(self.open)
+        self.actions["save"].triggered.connect(self.save)
         self.actions["close"].triggered.connect(self.new)
 
         self.actions["del"].triggered.connect(self.view.deleteSelectedPoint)
@@ -107,12 +115,16 @@ class MainWin(MainWinBase):
         self.axesxTable.setColumnWidth(1, 100)
         self.axesyTable.setColumnWidth(0, 120)
         self.axesyTable.setColumnWidth(1, 100)
-        self.curveTable.setColumnWidth(0, 45)
+        self.curveTable.setColumnWidth(0, 50)
         self.curveTable.setColumnWidth(1, 120)
-        self.curveTable.setColumnWidth(2, 45)
+        self.curveTable.setColumnWidth(2, 50)
         self.pointsTable.setColumnWidth(0, 45)
         self.pointsTable.setColumnWidth(1, 80)
         self.pointsTable.setColumnWidth(2, 80)
+        self.axesxTable.verticalHeader().setVisible(False)
+        self.axesyTable.verticalHeader().setVisible(False)
+        self.curveTable.verticalHeader().setVisible(False)
+        self.pointsTable.verticalHeader().setVisible(False)
 
         class ReadOnlyDelegate(QItemDelegate):
             def __init__(self, parent):
@@ -139,33 +151,28 @@ class MainWin(MainWinBase):
                 pass
             return name
 
-        self.actions["addcurve"].triggered.connect(lambda: self.view.addCurve(nextName(selectedCurve())))
+        self.actions["addcurve"].triggered.connect(lambda: self.view.addCurveToTable(nextName(selectedCurve())))
         self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(name=selectedCurve()))
 
         def changecurve(index):
             if index.column() == 0:
-                for i in range(self.view.curveModel.rowCount()):
-                    if i == index.row():
-                        self.view.curveModel.item(i, 0).switch(True)
-                        self.view.changeCurrentCurve(self.view.curveModel.item(i, 1).text())
-                    else:
-                        self.view.curveModel.item(i, 0).switch(False)
+                self.view.changeCurrentCurve(self.view.curveModel.item(index.row(), 1).text())
 
         self.curveTable.doubleClicked.connect(changecurve)
         # self.pointsTable.mov
 
     def scalegraph(self):
-        scale,ok = QInputDialog.getDouble(self, self.tr("scale the graph"),
+        scale, ok = QInputDialog.getDouble(self, self.tr("scale the graph"),
                                            self.tr("set the scale value:"), 1, 0.01, 100, 2)
         if ok:
-            self.view.resizeGraphImage(scale)
+            self.view.scaleGraphImage(scale)
 
     def gridsetting(self):
-        dialog=QDialog(self)
-        layout=QVBoxLayout(dialog)
+        dialog = QDialog(self)
+        layout = QVBoxLayout(dialog)
 
-        xgroup=QGroupBox(self.tr("grid parameter for axis x"),self)
-        form=QFormLayout(xgroup)
+        xgroup = QGroupBox(self.tr("grid parameter for axis x"), self)
+        form = QFormLayout(xgroup)
         spinboxxmin = QDoubleSpinBox(dialog)
         spinboxxmax = QDoubleSpinBox(dialog)
         spinboxxstep = QDoubleSpinBox(dialog)
@@ -176,8 +183,8 @@ class MainWin(MainWinBase):
         form.addRow(self.tr("maximum value:"), spinboxxmax)
         form.addRow(self.tr("step value:"), spinboxxstep)
 
-        ygroup=QGroupBox(self.tr("grid parameter for axis y"),self)
-        form=QFormLayout(ygroup)
+        ygroup = QGroupBox(self.tr("grid parameter for axis y"), self)
+        form = QFormLayout(ygroup)
         spinboxymin = QDoubleSpinBox(dialog)
         spinboxymax = QDoubleSpinBox(dialog)
         spinboxystep = QDoubleSpinBox(dialog)
@@ -188,22 +195,22 @@ class MainWin(MainWinBase):
         form.addRow(self.tr("maximum value:"), spinboxymax)
         form.addRow(self.tr("step value:"), spinboxystep)
 
-        hbox1=QHBoxLayout()
+        hbox1 = QHBoxLayout()
         hbox1.addWidget(xgroup)
         hbox1.addWidget(ygroup)
-        hbox2=QHBoxLayout()
+        hbox2 = QHBoxLayout()
         spinboxWidth = QSpinBox(dialog)
         spinboxWidth.setValue(1)
         lineCombo = QLineComboBox()
-        lineCombo.addItem(self.tr("SolidLine"),Qt.SolidLine)
-        lineCombo.addItem(self.tr("DashLine"),Qt.DashLine)
-        lineCombo.addItem(self.tr("DotLine"),Qt.DotLine)
-        lineCombo.addItem(self.tr("DashDotLine"),Qt.DashDotLine)
-        lineCombo.addItem(self.tr("DashDotDotLine"),Qt.DashDotDotLine)
+        lineCombo.addItem(self.tr("SolidLine"), Qt.SolidLine)
+        lineCombo.addItem(self.tr("DashLine"), Qt.DashLine)
+        lineCombo.addItem(self.tr("DotLine"), Qt.DotLine)
+        lineCombo.addItem(self.tr("DashDotLine"), Qt.DashDotLine)
+        lineCombo.addItem(self.tr("DashDotDotLine"), Qt.DashDotDotLine)
         lineCombo.setCurrentIndex(1)
-        colorCombo = QComboBox()
-        colorCombo.addItems(QColor.colorNames())
-        colorCombo.setCurrentText("red")
+        colorCombo = QColorComboBox()
+        # colorCombo.addItems(QColor.colorNames())
+        # colorCombo.setCurrentText("red")
         hbox2.addWidget(QLabel("GridWidth"))
         hbox2.addWidget(spinboxWidth)
         hbox2.addWidget(QLabel("LineType"))
@@ -211,7 +218,7 @@ class MainWin(MainWinBase):
         hbox2.addWidget(QLabel("LineColor"))
         hbox2.addWidget(colorCombo)
 
-        buttonBox=QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, dialog)
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, dialog)
 
         layout.addLayout(hbox1)
         layout.addLayout(hbox2)
@@ -221,11 +228,11 @@ class MainWin(MainWinBase):
         buttonBox.rejected.connect(dialog.reject)
 
         if dialog.exec() == QDialog.Accepted:
-            self.view.datas.gridx=[spinboxxmin.value(),spinboxxmax.value(),spinboxxstep.value()]
-            self.view.datas.gridy=[spinboxymin.value(),spinboxymax.value(),spinboxystep.value()]
-            self.view.datas.gridLineWidth=spinboxWidth.value()
-            self.view.datas.gridColor=QColor(colorCombo.currentText())
-            self.view.datas.gridLineType=lineCombo.currentData()
+            self.view.proj.gridx = [spinboxxmin.value(), spinboxxmax.value(), spinboxxstep.value()]
+            self.view.proj.gridy = [spinboxymin.value(), spinboxymax.value(), spinboxystep.value()]
+            self.view.proj.gridLineWidth = spinboxWidth.value()
+            self.view.proj.gridColor = QColor(colorCombo.currentText())
+            self.view.proj.gridLineType = lineCombo.currentData()
 
     def export(self, file=None):
         if not file:
@@ -237,3 +244,71 @@ class MainWin(MainWinBase):
             self.statusbar.showMessage(self.tr("export successfully."))
         else:
             self.statusbar.showMessage(self.tr("export failure."))
+
+    def save(self):
+        self.saveas(self.file)
+
+    def saveas(self, file=None):
+        if not file:
+            file, _ = QFileDialog.getSaveFileName(self, self.tr("save project"), "",
+                                                  "digi (*.digi);;all(*.*)")  # _是filefilter
+        if file:
+            self.file = file
+            # store data to proj
+            self.view.dump()
+            # save digi.dump
+            with open(self.fileop.datafile, 'wb') as datafile:
+                dill.dump(self.view.proj, datafile)
+            self.fileop.save(file)
+            self.statusbar.showMessage(self.tr("save successfully."))
+        else:
+            self.statusbar.showMessage(self.tr("save failure."))
+
+    def open(self, file=None):
+        if self.view.modified:
+            pass  # TODO
+
+        if not file:
+            file, _ = QFileDialog.getOpenFileName(self, self.tr("open project"), "",
+                                                  "digi (*.digi);;all(*.*)")  # _是filefilter
+        if file:
+            try:
+                if self.fileop.open(file):
+                    if os.path.exists(self.fileop.imgfile):
+                        self.view.setGraphImage(self.fileop.imgfile)
+                    if os.path.exists(self.fileop.datafile):
+                        with open(self.fileop.datafile, 'rb') as f:
+                            self.new()
+                            self.view.proj = dill.load(f)
+                            self.view.load(self.view.proj)
+                    self.statusbar.showMessage(self.tr("open successfully."))
+                else:
+                    self.statusbar.showMessage(self.tr("open failure"))
+            except Exception as e:
+                self.statusbar.showMessage(self.tr("open failure:{}").format(e.args))
+        else:
+            self.statusbar.showMessage(self.tr("nothing opened"))
+
+    def closeEvent(self, e):
+        if self.view.modified:
+            msg = QMessageBox(QMessageBox.Question, self.title,
+                              self.tr("Current file hasn't been saved, do you want to save?"),
+                              QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)
+            msg.setDefaultButton(QMessageBox.Cancel)
+            msg.button(QMessageBox.Save).setText(self.tr("Save"))
+            msg.button(QMessageBox.Discard).setText(self.tr("Discard"))
+            msg.button(QMessageBox.Cancel).setText(self.tr("Cancel"))
+            ret = msg.exec_()
+            if ret in (QMessageBox.Save, QMessageBox.Yes):
+                self.save()
+                e.ignore()
+            elif ret in (QMessageBox.Discard, QMessageBox.No):
+                self.updateSpecialConfig()
+                # self.config.save()
+                self.fileop.close()
+                qApp.exit()
+            else:
+                e.ignore()
+        # else:
+        # self.updateSpecialConfig()
+        # self.config.saveDefault()

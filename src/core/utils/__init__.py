@@ -23,7 +23,7 @@ def nextName(name):
     if 'ddd' given, return 'ddd1'
     """
     if not isinstance(name, str):
-        return None
+        name = "curve"
     if not name[-1].isdigit():
         return name + "1"
     return re.sub(r"\d+$", lambda matchobj: incDigitStr(matchobj.group(0)), name)

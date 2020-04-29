@@ -5,14 +5,14 @@ Copyright (c) 2020lileilei <hustlei@sina.cn>
 """
 
 from pytest import fixture
-from core.project import ProjData
+from core.project import Digi
 
 
 @fixture(scope="function")
 def data():
     """Fixture: create a datas
     """
-    return ProjData()
+    return Digi()
 
 
 def test_project(data, tmpdir):

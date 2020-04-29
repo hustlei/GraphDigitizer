@@ -21,41 +21,51 @@ class Curve():
         self.lineWidth = 1
 
 
-class ProjData():
+class Digi():
+    """Project data for app
+
+    img and grid data used by app directly.
+    data only used for app save and open
+    """
+
     def __init__(self, imgpath=""):
+        # data input directly by user
         # chart image
-        self.img = None # QPixmap, set by setImgpath
+        self.img = None  # QPixmap, set by setImgpath
         self.imgScale = 1
-        self.imgOriginSize = None
-        # axis coords
-        self.axisx = {}  # {0:0,1:1}
-        self.axisy = {}  # {0:0,1:1}
+        # axes
+        self.axesxs = []
+        self.axesys = []
         # grid
         self.gridx = [None, None, None]  # min max step
         self.gridy = [None, None, None]  # min max step
         self.gridLineType = Qt.DotLine
         self.gridLineWidth = 1
         self.gridColor = Qt.gray
-        # curves
-        # self.curves = {"default": Curve()}
+        # data for save and load, including point,curve coords got by mouse on graphicsview
+        self.data = {}
+        self.resetData()
 
-        # init
-        # self.currentCurve = "default"
+        if os.path.exists(imgpath):
+            self.img = imgpath
 
-        self.setImgpath(imgpath)
+    def resetData(self, newproject=False):
+        if newproject:
+            self.img = None  # QPixmap, set by setImgpath
+            self.imgScale = 1
+            # axes
+            self.axesxs = []
+            self.axesys = []
+            # grid
+            self.gridx = [None, None, None]  # min max step
+            self.gridy = [None, None, None]  # min max step
+            self.gridLineType = Qt.DotLine
+            self.gridLineWidth = 1
+            self.gridColor = Qt.gray
 
-    def setImgpath(self, imgpath):
-        if imgpath:
-            if os.path.exists(imgpath):
-                self.img = QPixmap(imgpath)
-                self.imgOriginSize = self.img.size()
-                self.scaleImg()
-
-    def scaleImg(self, imgScale=None):
-        if imgScale and imgScale > 0:
-            self.imgScale = imgScale
-        self.imgSize = self.imgOriginSize * self.imgScale
-        self.img = self.img.scaled(self.imgSize, aspectRatioMode=Qt.KeepAspectRatio)  # 按比例缩放：
+        self.data["axesxObjs"] = []  # [x1,x2,x3]
+        self.data["axesyObjs"] = []  # [y1,y2,y3]
+        self.data["curves"] = {}  # {'default':(x1,y1),(x2,y2)}
 
     @staticmethod
     def open(file):

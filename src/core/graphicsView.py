@@ -85,8 +85,9 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.scaleGraphImage(proj.imgScale)
         # axes
         for x in proj.data["axesxObjs"]:
-            item = QGraphicsAxesItem(x, self.scene.sceneRect().y(), x,
+            item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
+            item.setPos(x, 0)
             item.Axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
@@ -95,8 +96,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.xNo += 1
             self.axesxModel.appendRow([QStandardItem("x{}".format(self.xNo)), QStandardItem(str(x))])
         for y in proj.data["axesyObjs"]:
-            item = QGraphicsAxesItem(self.scene.sceneRect().x(), y,
-                                     self.scene.sceneRect().x() + self.scene.sceneRect().width(), y)
+            item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
+                                     self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
+            item.setPos(0, y)
             item.Axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
@@ -154,9 +156,9 @@ class GraphDigitGraphicsView(QGraphicsView):
         proj = self.proj
         # axes
         for item in self.axesxObjs:
-            proj.data["axesxObjs"].append((item.line().x1()))
+            proj.data["axesxObjs"].append(item.pos().x())
         for item in self.axesyObjs:
-            proj.data["axesyObjs"].append((item.line().y1()))
+            proj.data["axesyObjs"].append(item.pos().y())
         # curve
         for curve in self.pointObjs:
             proj.data["curves"][curve] = []
@@ -229,13 +231,13 @@ class GraphDigitGraphicsView(QGraphicsView):
 
             elif isinstance(item, QGraphicsAxesItem):
                 if item.Axis == "x":
-                    x = item.line().x1()
-                    item.setLine(x, self.scene.sceneRect().y(), x,
+                    item.setPos(self.mapToScene(evt.pos()).x(), 0)
+                    item.setLine(0, self.scene.sceneRect().y(), 0,
                                  self.scene.sceneRect().y() + self.scene.sceneRect().height())
                 elif item.Axis == "y":
-                    y = item.line().y1()
-                    item.setLine(self.scene.sceneRect().x(), y,
-                                 self.scene.sceneRect().x() + self.scene.sceneRect().width(),y)
+                    item.setPos(0, self.mapToScene(evt.pos()).y())
+                    item.setLine(self.scene.sceneRect().x(), 0,
+                                 self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
 
         # self.updateCurve(self.currentCurve)
         # self.repaint()
@@ -258,9 +260,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             pass
             # super().mousePressEvent(event)
         elif self.mode is OpMode.axesx and clicked:
-            item = QGraphicsAxesItem(ptscene.x(),
-                                     self.scene.sceneRect().y(), ptscene.x(),
+            item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
+            item.setPos(ptscene.x(), 0)
             item.Axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
@@ -279,8 +281,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.axesy and clicked:
-            item = QGraphicsAxesItem(self.scene.sceneRect().x(), ptscene.y(),
-                                     self.scene.sceneRect().x() + self.scene.sceneRect().width(), ptscene.y())
+            item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
+                                     self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
+            item.setPos(0, ptscene.y())
             item.Axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
@@ -387,7 +390,6 @@ class GraphDigitGraphicsView(QGraphicsView):
                         break
         if curvechange:
             self.updateCurve(curvechange)
-
 
         if isinstance(item, QGraphicsAxesItem):
             for i, line in enumerate(self.axesxObjs):
@@ -613,8 +615,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             if name is None:
                 return
         for i in range(self.curveModel.rowCount()):
-            if self.curveModel.item(i,1).text() == name:
-                self.curveModel.item(i,0).switch(True)
+            if self.curveModel.item(i, 1).text() == name:
+                self.curveModel.item(i, 0).switch(True)
             else:
                 self.curveModel.item(i, 0).switch(False)
 

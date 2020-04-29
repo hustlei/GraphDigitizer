@@ -374,21 +374,39 @@ class GraphDigitGraphicsView(QGraphicsView):
                 return index + 1
         return l
 
-    def deletePoint(self, pointItem):
+    def deleteItem(self, item):
+        """delete point on curve or axis object"""
         curvechange = None
-        for name, items in self.pointObjs.items():
-            for ptitem in items:
-                if ptitem is pointItem:
-                    curvechange = name
-                    items.remove(ptitem)
-        self.scene.removeItem(pointItem)
+        if isinstance(item, QGraphicsPointItem):
+            for curvename, pointitems in self.pointObjs.items():
+                for ptitem in pointitems:
+                    if ptitem is item:
+                        curvechange = curvename
+                        pointitems.remove(ptitem)
+                        self.scene.removeItem(item)
+                        break
         if curvechange:
             self.updateCurve(curvechange)
 
-    def deleteSelectedPoint(self):
+
+        if isinstance(item, QGraphicsAxesItem):
+            for i, line in enumerate(self.axesxObjs):
+                if line is item:
+                    self.axesxModel.removeRow(i)
+                    self.proj.axesxs.pop(i)
+                    self.axesxObjs.remove(line)
+                    self.scene.removeItem(line)
+            for i, line in enumerate(self.axesyObjs):
+                if line is item:
+                    self.axesyModel.removeRow(i)
+                    self.proj.axesys.pop(i)
+                    self.axesyObjs.remove(line)
+                    self.scene.removeItem(line)
+
+    def deleteSelectedItem(self):
         pointitems = self.scene.selectedItems()
         if len(pointitems) == 1:
-            self.deletePoint(pointitems[0])
+            self.deleteItem(pointitems[0])
 
     def updateCurve(self, name, color=Qt.black):
         # if name in self.curveObjs:

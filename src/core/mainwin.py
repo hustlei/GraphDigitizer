@@ -91,7 +91,7 @@ class MainWin(MainWinBase):
         self.actions["save"].triggered.connect(self.save)
         self.actions["close"].triggered.connect(self.new)
 
-        self.actions["del"].triggered.connect(self.view.deleteSelectedPoint)
+        self.actions["del"].triggered.connect(self.view.deleteSelectedItem)
 
         self.actions["select"].triggered.connect(lambda x: self.changeMode(OpMode.select, x))
         self.actions["axesx"].triggered.connect(lambda x: (self.changeMode(OpMode.axesx, x)))

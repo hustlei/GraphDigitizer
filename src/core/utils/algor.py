@@ -71,6 +71,54 @@ def interp(xlist, ylist, newxlist, maxkind=3):
     yarray = interpolate.UnivariateSpline(xlist, ylist, k=kind, s=0)(newxlist)
     return list(yarray)
 
+def pointInsertPosition(ptitem, ptitems):
+    """get the nearest position for new point
+    return the predicted new index for new point in pointObj
+    """
+    l = len(ptitems)
+    if l == 0:
+        return 0
+    if l == 1:
+        return 1
+    index = 0
+
+    p = (ptitem.x(), ptitem.y())
+    p1 = (ptitems[0].x(), ptitems[0].y())
+    p2 = (ptitems[1].x(), ptitems[1].y())
+    mindist = distToLine(p, p1, p2)
+    for i in range(1, l - 1):
+        p1 = p2
+        p2 = (ptitems[i + 1].x(), ptitems[i + 1].y())
+        dist = distToLine(p, p1, p2)
+        pos = perpendOnLine(p, p1, p2)
+        if pos == 0:
+            if dist < mindist:
+                mindist = dist
+                index = i
+    if index == 0:
+        p1 = (ptitems[0].x(), ptitems[0].y())
+        p2 = (ptitems[1].x(), ptitems[1].y())
+        pos = perpendOnLine(p, p1, p2)
+        dist = distToLine(p, p1, p2)
+        length = distToPoint(p1, p2)
+        if pos == 0 and dist < length / 4:
+            return 1
+        pstart = (ptitems[0].x(), ptitems[0].y())
+        pend = (ptitems[-1].x(), ptitems[-1].y())
+        d0 = distToPoint(p, pstart)
+        d1 = distToPoint(p, pend)
+        if pos == -1 and d0 < d1:
+            return 0
+        return l
+    else:
+        p1 = (ptitems[index].x(), ptitems[index].y())
+        p2 = (ptitems[index + 1].x(), ptitems[index + 1].y())
+        dist = distToLine(p, p1, p2)
+        lenth = distToPoint(p1, p2)
+        if dist < lenth / 2:
+            return index + 1
+    return l
+
 
 if __name__ == "__main__":
     print(distToPoint((1, 1), (2, 2)))  # 1.414

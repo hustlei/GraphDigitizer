@@ -89,6 +89,7 @@ class MainWin(MainWinBase):
         self.actions["export"].triggered.connect(self.export)
         self.actions["open"].triggered.connect(self.open)
         self.actions["save"].triggered.connect(self.save)
+        self.actions["saveas"].triggered.connect(self.saveas)
         self.actions["close"].triggered.connect(self.new)
 
         self.actions["del"].triggered.connect(self.view.deleteSelectedItem)
@@ -151,7 +152,7 @@ class MainWin(MainWinBase):
                 pass
             return name
 
-        self.actions["addcurve"].triggered.connect(lambda: self.view.addCurveToTable(nextName(selectedCurve())))
+        self.actions["addcurve"].triggered.connect(lambda: self.view.addCurve())
         self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(name=selectedCurve()))
 
         def changecurve(index):

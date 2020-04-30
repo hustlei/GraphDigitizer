@@ -8,7 +8,7 @@ Copyright (c) 2019 lileilei <hustlei@sina.cn>
 
 import os
 import dill
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtCore import Qt
 from .enums import PointType
 
@@ -41,7 +41,8 @@ class Digi():
         self.gridy = [None, None, None]  # min max step
         self.gridLineType = Qt.DotLine
         self.gridLineWidth = 1
-        self.gridColor = Qt.gray
+        self.gridColor = QColor("cornflowerblue") # Qt.gray
+        self.gridOpacity = 1
         # data for save and load, including point,curve coords got by mouse on graphicsview
         self.data = {}
         self.resetData()
@@ -61,7 +62,8 @@ class Digi():
             self.gridy = [None, None, None]  # min max step
             self.gridLineType = Qt.DotLine
             self.gridLineWidth = 1
-            self.gridColor = Qt.gray
+            self.gridColor = QColor("cornflowerblue") # Qt.gray
+            self.gridOpacity = 1
 
         self.data["axesxObjs"] = []  # [x1,x2,x3]
         self.data["axesyObjs"] = []  # [y1,y2,y3]

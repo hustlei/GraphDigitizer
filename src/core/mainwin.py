@@ -10,12 +10,13 @@ import dill
 from PyQt5.QtCore import Qt, QModelIndex, QMetaEnum
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInputDialog, QDialog, QLabel, QFormLayout, \
-    QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox, QMessageBox, qApp
+    QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox, QMessageBox, qApp, \
+    QLineEdit
 
 from core.graphicsView import GraphDigitGraphicsView
 from .enums import OpMode
 from .mainwinbase import MainWinBase
-from .utils import nextName
+from .utils import nextName, str2num
 from .utils.fileop import FileOp
 from .widgets.custom import QLineComboBox, QColorComboBox
 
@@ -161,16 +162,20 @@ class MainWin(MainWinBase):
                 self.view.changeCurrentCurve(self.view.curveModel.item(index.row(), 1).text())
 
         self.curveTable.doubleClicked.connect(changecurve)
+
         # show or not show background
         def hidegraph():
             self.actions["hidegraph"].setChecked(True)
             self.actions["showoriginalgraph"].setChecked(False)
             self.view.graphicsPixmapItem.setVisible(False)
+
         self.actions["hidegraph"].triggered.connect(hidegraph)
+
         def showoriginalgraph():
             self.actions["hidegraph"].setChecked(False)
             self.actions["showoriginalgraph"].setChecked(True)
             self.view.graphicsPixmapItem.setVisible(True)
+
         self.actions["showoriginalgraph"].triggered.connect(showoriginalgraph)
         self.actions["showoriginalgraph"].setChecked(True)
 
@@ -186,66 +191,81 @@ class MainWin(MainWinBase):
 
         xgroup = QGroupBox(self.tr("grid parameter for axis x"), self)
         form = QFormLayout(xgroup)
-        spinboxxmin = QDoubleSpinBox(dialog)
-        spinboxxmax = QDoubleSpinBox(dialog)
-        spinboxxstep = QDoubleSpinBox(dialog)
-        spinboxxmin.setValue(0)
-        spinboxxmax.setValue(1)
-        spinboxxstep.setValue(0.1)
-        form.addRow(self.tr("minimum value:"), spinboxxmin)
-        form.addRow(self.tr("maximum value:"), spinboxxmax)
-        form.addRow(self.tr("step value:"), spinboxxstep)
+        xmintextbox = QLineEdit(dialog)
+        xmaxtextbox = QLineEdit(dialog)
+        xsteptextbox = QLineEdit(dialog)
+        form.addRow(self.tr("minimum value:"), xmintextbox)
+        form.addRow(self.tr("maximum value:"), xmaxtextbox)
+        form.addRow(self.tr("step value:"), xsteptextbox)
 
         ygroup = QGroupBox(self.tr("grid parameter for axis y"), self)
         form = QFormLayout(ygroup)
-        spinboxymin = QDoubleSpinBox(dialog)
-        spinboxymax = QDoubleSpinBox(dialog)
-        spinboxystep = QDoubleSpinBox(dialog)
-        spinboxymin.setValue(0)
-        spinboxymax.setValue(1)
-        spinboxystep.setValue(0.1)
-        form.addRow(self.tr("minimum value:"), spinboxymin)
-        form.addRow(self.tr("maximum value:"), spinboxymax)
-        form.addRow(self.tr("step value:"), spinboxystep)
+        ymintextbox = QLineEdit(dialog)
+        ymaxtextbox = QLineEdit(dialog)
+        ysteptextbox = QLineEdit(dialog)
+        form.addRow(self.tr("minimum value:"), ymintextbox)
+        form.addRow(self.tr("maximum value:"), ymaxtextbox)
+        form.addRow(self.tr("step value:"), ysteptextbox)
 
         hbox1 = QHBoxLayout()
         hbox1.addWidget(xgroup)
         hbox1.addWidget(ygroup)
-        hbox2 = QHBoxLayout()
-        spinboxWidth = QSpinBox(dialog)
-        spinboxWidth.setValue(1)
+
         lineCombo = QLineComboBox()
         lineCombo.addItem(self.tr("SolidLine"), Qt.SolidLine)
         lineCombo.addItem(self.tr("DashLine"), Qt.DashLine)
         lineCombo.addItem(self.tr("DotLine"), Qt.DotLine)
         lineCombo.addItem(self.tr("DashDotLine"), Qt.DashDotLine)
         lineCombo.addItem(self.tr("DashDotDotLine"), Qt.DashDotDotLine)
-        lineCombo.setCurrentIndex(1)
         colorCombo = QColorComboBox()
+        spinboxWidth = QSpinBox(dialog)
+        spinboxOpacity = QDoubleSpinBox(dialog)
+        spinboxOpacity.setRange(0, 1)
+        spinboxOpacity.setSingleStep(0.1)
+
+        gridlinegroup = QGroupBox(self.tr("grid line properties"), self)
+        hbox2 = QHBoxLayout()
+        gridlinegroup.setLayout(hbox2)
+        form1 = QFormLayout()
+        form2 = QFormLayout()
+        hbox2.addLayout(form1)
+        hbox2.addLayout(form2)
         # colorCombo.addItems(QColor.colorNames())
         # colorCombo.setCurrentText("red")
-        hbox2.addWidget(QLabel("GridWidth"))
-        hbox2.addWidget(spinboxWidth)
-        hbox2.addWidget(QLabel("LineType"))
-        hbox2.addWidget(lineCombo)
-        hbox2.addWidget(QLabel("LineColor"))
-        hbox2.addWidget(colorCombo)
+        form1.addRow(QLabel("LineType"), lineCombo)
+        form1.addRow(QLabel("GridColor"), colorCombo)
+        form2.addRow(QLabel("GridWidth"), spinboxWidth)
+        form2.addRow(QLabel("Opacity"), spinboxOpacity)
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, Qt.Horizontal, dialog)
 
         layout.addLayout(hbox1)
-        layout.addLayout(hbox2)
+        layout.addWidget(gridlinegroup)
         layout.addWidget(buttonBox)
 
         buttonBox.accepted.connect(dialog.accept)
         buttonBox.rejected.connect(dialog.reject)
 
+        lineCombo.setCurrentIndex(lineCombo.findData(self.view.proj.gridLineType))
+        colorCombo.setCurrentIndex(colorCombo.findData(self.view.proj.gridColor))
+        spinboxWidth.setValue(self.view.proj.gridLineWidth)
+        spinboxOpacity.setValue(self.view.proj.gridOpacity)
+        xmintextbox.setText(str(self.view.proj.gridx[0]) if self.view.proj.gridx[0] is not None else "")
+        xmaxtextbox.setText(str(self.view.proj.gridx[1]) if self.view.proj.gridx[1] is not None else "")
+        xsteptextbox.setText(str(self.view.proj.gridx[2]) if self.view.proj.gridx[2] is not None else "")
+        ymintextbox.setText(str(self.view.proj.gridy[0]) if self.view.proj.gridy[0] is not None else "")
+        ymaxtextbox.setText(str(self.view.proj.gridy[1]) if self.view.proj.gridy[1] is not None else "")
+        ysteptextbox.setText(str(self.view.proj.gridy[2]) if self.view.proj.gridy[2] is not None else "")
+
         if dialog.exec() == QDialog.Accepted:
-            self.view.proj.gridx = [spinboxxmin.value(), spinboxxmax.value(), spinboxxstep.value()]
-            self.view.proj.gridy = [spinboxymin.value(), spinboxymax.value(), spinboxystep.value()]
+            self.view.proj.gridx = [str2num(xmintextbox.text()), str2num(xmaxtextbox.text()),
+                                    str2num(xsteptextbox.text())]
+            self.view.proj.gridy = [str2num(ymintextbox.text()), str2num(ymaxtextbox.text()),
+                                    str2num(ysteptextbox.text())]
             self.view.proj.gridLineWidth = spinboxWidth.value()
             self.view.proj.gridColor = QColor(colorCombo.currentText())
             self.view.proj.gridLineType = lineCombo.currentData()
+            self.view.proj.gridOpacity = spinboxOpacity.value()
             self.view.calGridCoord()
             self.view.updateGrid()
 

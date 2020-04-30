@@ -28,6 +28,14 @@ def nextName(name):
         return name + "1"
     return re.sub(r"\d+$", lambda matchobj: incDigitStr(matchobj.group(0)), name)
 
+def str2num(s):
+    s = s.strip()
+    try:
+        if s.lower() == "nan":
+            return None
+        return float(s)
+    except:
+        return None
 
 if __name__ == "__main__":
     print(nextName("aaa"))

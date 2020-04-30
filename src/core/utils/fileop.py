@@ -50,14 +50,18 @@ class FileOp():
                 print("extract zip failure:" + e.args)
                 z.close()
                 return False
-            if os.path.exists(self.imgfile) and os.path.exists(self.datafile):
+            if self.imgfile and not os.path.exists(self.imgfile):
+                z.close()
+                return False
+            if os.path.exists(self.datafile):
                 z.close()
                 return True
+        z.close()
         return False
 
     def save(self, zipfile):
         z = ZipFile(zipfile, 'w')
-        if os.path.exists(self.imgfile):
+        if self.imgfile and os.path.exists(self.imgfile):
             z.write(self.imgfile, self.imgfilename)
         if os.path.exists(self.datafile):
             z.write(self.datafile, self.datafilename)

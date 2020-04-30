@@ -122,7 +122,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 i = self.newPointIndex(ptitem)
                 self.pointObjs[self.currentCurve].insert(i, ptitem)
                 self.scene.addItem(ptitem)
-        self.updateCurve(curve)
+            self.updateCurve(curve)
         # grid
         self.calGridCoord()
         self.updateGrid()
@@ -151,6 +151,10 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.axesyModel.clear()
         self.curveModel.clear()
         self.pointsModel.clear()
+        self.curveModel.setHorizontalHeaderLabels(["current", "name", "visible"])
+        self.pointsModel.setHorizontalHeaderLabels(["order", "x", "y"])
+        self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
+        self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
 
     def dump(self):
         proj = self.proj
@@ -271,8 +275,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             x, okPressed = QInputDialog.getDouble(self, self.tr("set x coordiniate"),
                                                   self.tr("set the x coord for axis"))
             if okPressed and x not in self.proj.axesxs:
-                self.proj.axesxs.append(x)
                 self.axesxObjs.append(item)
+                self.proj.axesxs.append(x)
                 self.xNo += 1
                 self.axesxModel.appendRow([QStandardItem("x{}".format(self.xNo)), QStandardItem(str(x))])
                 self.calGridCoord("x")
@@ -294,9 +298,10 @@ class GraphDigitGraphicsView(QGraphicsView):
             if okPressed and y not in self.proj.axesys:
                 self.axesyObjs.append(item)
                 self.proj.axesys.append(y)
+                self.yNo += 1
+                self.axesyModel.appendRow([QStandardItem("y{}".format(self.yNo)), QStandardItem(str(y))])
                 self.calGridCoord("y")
                 self.updateGrid()
-                self.axesyModel.appendRow([QStandardItem("y{}".format(self.yNo)), QStandardItem(str(y))])
                 item.setSelected(True)
             else:
                 self.scene.removeItem(item)
@@ -434,12 +439,11 @@ class GraphDigitGraphicsView(QGraphicsView):
         if not isinstance(name, str):
             return
 
-        curveitems = []
+        lastitems = []
         if name in self.curveObjs:
-            curveitems = self.curveObjs[name]
-            if not isinstance(curveitems, list):
-                curveitems = []
-        lastitems = curveitems.copy()
+            lastitems = self.curveObjs[name]
+            if not isinstance(lastitems, list):
+                lastitems = []
 
         if name in self.pointObjs:
             pointItems = self.pointObjs[name]
@@ -449,14 +453,14 @@ class GraphDigitGraphicsView(QGraphicsView):
         for ptitem in pointItems:
             points.append(ptitem.pos())
 
+        self.curveObjs[name] = []
         if len(points) > 1:
             for i in range(1, len(points)):
                 l = QGraphicsLineItem(points[i - 1].x(), points[i - 1].y(), points[i].x(), points[i].y())
                 l.setPen(color)
                 # l.setFlag(QGraphicsItem.ItemIsSelectable)
-                curveitems.append(l)
+                self.curveObjs[name].append(l)
                 self.scene.addItem(l)
-        self.curveObjs[name] = curveitems
 
         for line in lastitems:
             self.scene.removeItem(line)
@@ -491,10 +495,10 @@ class GraphDigitGraphicsView(QGraphicsView):
 
         if mode in ("x", "all"):
             axesxpos = []
-            for o in self.axesxObjs:
-                axesxpos.append(o.line().x1())
-            xmin = min(self.proj.axesxs) if self.proj.gridx[0] is None else self.proj.gridx[0]
-            xmax = max(self.proj.axesxs) if self.proj.gridx[1] is None else self.proj.gridx[1]
+            for axisl in self.axesxObjs:
+                axesxpos.append(axisl.pos().x())
+            xmin = min(self.proj.axesxs) if self.proj.gridx[0] is None else min(self.proj.gridx[0], min(self.proj.axesxs))
+            xmax = max(self.proj.axesxs) if self.proj.gridx[1] is None else max(self.proj.gridx[1], max(self.proj.axesxs))
             if self.proj.gridx[2] is None:
                 if len(self.axesxObjs) == 2:
                     xstep = (xmax - xmin) / 5
@@ -513,10 +517,10 @@ class GraphDigitGraphicsView(QGraphicsView):
 
         if mode in ("y", "all"):
             axesy = []
-            for o in self.axesyObjs:
-                axesy.append(o.line().y1())
-            ymin = min(self.proj.axesys) if self.proj.gridy[0] is None else self.proj.gridy[0]
-            ymax = max(self.proj.axesys) if self.proj.gridy[1] is None else self.proj.gridy[1]
+            for axisl in self.axesyObjs:
+                axesy.append(axisl.pos().y())
+            ymin = min(self.proj.axesys) if self.proj.gridy[0] is None else min(self.proj.gridy[0], min(self.proj.axesys))
+            ymax = max(self.proj.axesys) if self.proj.gridy[1] is None else max(self.proj.gridy[1], max(self.proj.axesys))
             if self.proj.gridy[2] is None:
                 if len(self.axesyObjs) == 2:
                     ystep = (ymax - ymin) / 5
@@ -667,13 +671,13 @@ class GraphDigitGraphicsView(QGraphicsView):
 
         gridxs = []
         for item in self.axesxObjs:
-            gridxs.append(item.line().x1())
+            gridxs.append(item.pos().x())
         coordx = self.proj.axesxs
         xCoords = interp(gridxs, coordx, xlist)
 
         gridys = []
         for item in self.axesyObjs:
-            gridys.append(item.line().y1())
+            gridys.append(item.pos().y())
         coordy = self.proj.axesys
         yCoords = interp(gridys, coordy, ylist)
 
@@ -684,11 +688,11 @@ class GraphDigitGraphicsView(QGraphicsView):
             return (xlist, ylist)
         gridxs = []
         for item in self.axesxObjs:
-            gridxs.append(item.line().x1())
+            gridxs.append(item.pos().x())
         coordx = self.proj.axesxs
         gridys = []
         for item in self.axesyObjs:
-            gridys.append(item.line().y1())
+            gridys.append(item.pos().y())
         coordy = self.proj.axesys
         xposs = interp(coordx, gridxs, xlist)
         yposs = interp(coordy, gridys, ylist)

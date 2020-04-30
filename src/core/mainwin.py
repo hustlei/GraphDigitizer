@@ -233,6 +233,8 @@ class MainWin(MainWinBase):
             self.view.proj.gridLineWidth = spinboxWidth.value()
             self.view.proj.gridColor = QColor(colorCombo.currentText())
             self.view.proj.gridLineType = lineCombo.currentData()
+            self.view.calGridCoord()
+            self.view.updateGrid()
 
     def export(self, file=None):
         if not file:
@@ -274,8 +276,7 @@ class MainWin(MainWinBase):
         if file:
             try:
                 if self.fileop.open(file):
-                    if os.path.exists(self.fileop.imgfile):
-                        self.view.setGraphImage(self.fileop.imgfile)
+                    self.view.setGraphImage(self.fileop.imgfile)
                     if os.path.exists(self.fileop.datafile):
                         with open(self.fileop.datafile, 'rb') as f:
                             self.new()

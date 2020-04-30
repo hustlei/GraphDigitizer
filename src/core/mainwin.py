@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInpu
 from core.graphicsView import GraphDigitGraphicsView
 from .enums import OpMode
 from .mainwinbase import MainWinBase
+from .project import Digi
 from .utils import nextName, str2num
 from .utils.fileop import FileOp
 from .widgets.custom import QLineComboBox, QColorComboBox
@@ -314,6 +315,10 @@ class MainWin(MainWinBase):
                         with open(self.fileop.datafile, 'rb') as f:
                             self.new()
                             self.view.proj = dill.load(f)
+                            tmp = Digi()  # update old project format to new version
+                            for k,v in tmp.__dict__.items():
+                                if k not in self.view.proj.__dict__:
+                                    self.view.proj.__dict__[k] = v
                             self.view.load(self.view.proj)
                     self.statusbar.showMessage(self.tr("open successfully."))
                 else:

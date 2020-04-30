@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap, QColor
 from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem, QGraphicsLineItem,
                              QInputDialog, QLineEdit)
 
@@ -84,7 +84,12 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.setGraphImage(proj.img)
         self.scaleGraphImage(proj.imgScale)
         # axes
+        xs = []
+        ys = []
         for x in proj.data["axesxObjs"]:
+            if x in xs:
+                continue
+            xs.append(x)
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
             item.setPos(x, 0)
@@ -96,6 +101,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.xNo += 1
             self.axesxModel.appendRow([QStandardItem("x{}".format(self.xNo)), QStandardItem(str(x))])
         for y in proj.data["axesyObjs"]:
+            if y in ys:
+                continue
+            ys.append(y)
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
             item.setPos(0, y)
@@ -160,9 +168,11 @@ class GraphDigitGraphicsView(QGraphicsView):
         proj = self.proj
         # axes
         for item in self.axesxObjs:
-            proj.data["axesxObjs"].append(item.pos().x())
+            if item.pos().x() not in proj.data["axesxObjs"]:
+                proj.data["axesxObjs"].append(item.pos().x())
         for item in self.axesyObjs:
-            proj.data["axesyObjs"].append(item.pos().y())
+            if item.pos().y() not in proj.data["axesyObjs"]:
+                proj.data["axesyObjs"].append(item.pos().y())
         # curve
         for curve in self.pointObjs:
             proj.data["curves"][curve] = []
@@ -461,13 +471,14 @@ class GraphDigitGraphicsView(QGraphicsView):
                 else:
                     axesStep = round(abs(self.proj.axesxs[1] - self.proj.axesxs[0]), 5)
                     for i in range(2, len(self.proj.axesxs)):
-                        st = abs(self.proj.axesxs[i] - self.proj.axesxs[i - 1])
+                        st = round(abs(self.proj.axesxs[i] - self.proj.axesxs[i - 1]), 5)
                         if axesStep > st:
                             axesStep = st
                     xstep = axesStep
             else:
                 xstep = self.proj.gridx[2]
-            gridxcoord = list(np.arange(xmin, xmax, xstep)) + [xmax]
+            n = int(round((xmax - xmin) / xstep, 0)) + 1
+            gridxcoord = list(np.linspace(xmin, xmax, n))
         else:
             gridxcoord = []
 
@@ -485,13 +496,16 @@ class GraphDigitGraphicsView(QGraphicsView):
                 else:
                     axesStep = round(abs(self.proj.axesys[1] - self.proj.axesys[0]), 5)
                     for i in range(2, len(self.proj.axesys)):
-                        st = self.proj.axesys[i] - self.proj.axesys[i - 1]
+                        st = round(self.proj.axesys[i] - self.proj.axesys[i - 1], 5)
                         if axesStep > st:
                             axesStep = st
                     ystep = axesStep
             else:
                 ystep = self.proj.gridy[2]
-            gridycoord = list(np.arange(ymin, ymax, ystep)) + [ymax]
+
+            n = int(round((ymax - ymin) / ystep, 0)) + 1
+            gridycoord = list(np.linspace(ymin, ymax, n))
+            # gridycoord = list(np.arange(ymin, ymax, ystep)) + [ymax]
         else:
             gridycoord = []
 
@@ -507,14 +521,16 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.scene.removeItem(line)
 
         if self.gridxpos and self.gridypos:
+            clr = QColor(self.proj.gridColor)
+            clr.setAlphaF(self.proj.gridOpacity)
             for x in self.gridxpos:
                 line = QGraphicsLineItem(x, self.gridypos[0], x, self.gridypos[-1])
-                line.setPen(QPen(self.proj.gridColor, self.proj.gridLineWidth, self.proj.gridLineType))
+                line.setPen(QPen(clr, self.proj.gridLineWidth, self.proj.gridLineType))
                 self.gridObjs.append(line)
                 self.scene.addItem(line)
             for y in self.gridypos:
                 line = QGraphicsLineItem(self.gridxpos[0], y, self.gridxpos[-1], y)
-                line.setPen(QPen(self.proj.gridColor, self.proj.gridLineWidth, self.proj.gridLineType))
+                line.setPen(QPen(clr, self.proj.gridLineWidth, self.proj.gridLineType))
                 self.gridObjs.append(line)
                 self.scene.addItem(line)
 

@@ -5,6 +5,7 @@ Copyright (c) 2020 lileilei <hustlei@sina.cn>
 """
 
 from scipy import interpolate
+import numpy as np
 
 
 def distToPoint(point, p):
@@ -69,7 +70,7 @@ def interp(xlist, ylist, newxlist, maxkind=3):
     else:
         kind = maxkind
     yarray = interpolate.UnivariateSpline(xlist, ylist, k=kind, s=0)(newxlist)
-    return list(yarray)
+    return list(np.round(yarray,5))
 
 def pointInsertPosition(ptitem, ptitems):
     """get the nearest position for new point

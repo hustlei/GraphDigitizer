@@ -148,6 +148,17 @@ class MainWinBase(QMainWindow):
                                                checkable=True)
         self.actions["showcurves"].setChecked(True)
 
+        self.actions["hidegraph"] = createAct(self.tr("Hide Graph"),
+                                               self.tr("Hide the graph(background image)"),
+                                               None,
+                                               None,
+                                               checkable=True)
+        self.actions["showoriginalgraph"] = createAct(self.tr("Original Graph"),
+                                               self.tr("Show the original graph(background image)"),
+                                               None,
+                                               None,
+                                               checkable=True)
+
         self.actions["config"] = createAct(self.tr("&Config"), self.tr("settings."), None, ":appres.img/config.png")
 
         self.actions["about"] = createAct(self.tr("&About"), self.tr("About"))
@@ -195,6 +206,12 @@ class MainWinBase(QMainWindow):
         self.menus["View"].addSeparator()
         self.menus["View"].addAction(self.actions["showgrid"])
         self.menus["View"].addAction(self.actions["showcurves"])
+        self.menus["View"].addSeparator()
+        background = QMenu(self.tr("Graph"), self.menus["View"])
+        background.addAction(self.actions["hidegraph"])
+        background.addAction(self.actions["showoriginalgraph"])
+        self.menus["View"].addMenu(background)
+
 
         self.menus["Config"].addAction(self.actions["config"])
 

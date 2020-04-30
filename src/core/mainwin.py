@@ -56,6 +56,7 @@ class MainWin(MainWinBase):
             add2tmp = self.fileop.addImage(file)
             if ok and add2tmp:
                 self.statusbar.showMessage(self.tr("import successfully"))
+                self.actions["showoriginalgraph"].trigger()
             else:
                 self.statusbar.showMessage(self.tr("import failed"))
         else:
@@ -160,7 +161,18 @@ class MainWin(MainWinBase):
                 self.view.changeCurrentCurve(self.view.curveModel.item(index.row(), 1).text())
 
         self.curveTable.doubleClicked.connect(changecurve)
-        # self.pointsTable.mov
+        # show or not show background
+        def hidegraph():
+            self.actions["hidegraph"].setChecked(True)
+            self.actions["showoriginalgraph"].setChecked(False)
+            self.view.graphicsPixmapItem.setVisible(False)
+        self.actions["hidegraph"].triggered.connect(hidegraph)
+        def showoriginalgraph():
+            self.actions["hidegraph"].setChecked(False)
+            self.actions["showoriginalgraph"].setChecked(True)
+            self.view.graphicsPixmapItem.setVisible(True)
+        self.actions["showoriginalgraph"].triggered.connect(showoriginalgraph)
+        self.actions["showoriginalgraph"].setChecked(True)
 
     def scalegraph(self):
         scale, ok = QInputDialog.getDouble(self, self.tr("scale the graph"),

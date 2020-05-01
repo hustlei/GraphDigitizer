@@ -296,7 +296,7 @@ class MainWinBase(QMainWindow):
         self.statusbar.addPermanentWidget(self.status["pixel"])
 
     def createDocks(self):
-        self.docks["curves"] = QDockWidget(self.tr("curves"))
+        self.docks["curves"] = QDockWidget(self.tr("Axes and Curves"))
         self.docks["curves"].setMinimumSize(QSize(200, 200))
         self.docks["curves"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, self.docks["curves"])

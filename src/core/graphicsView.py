@@ -11,7 +11,7 @@ Copyright (c) 2020 lileilei <hustlei@sina.cn>
 import os
 
 import numpy as np
-from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt
+from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt, QItemSelectionModel, QModelIndex, QItemSelection
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap, QColor
 from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem, QGraphicsLineItem,
                              QInputDialog, QLineEdit)
@@ -55,6 +55,8 @@ class GraphDigitGraphicsView(QGraphicsView):
         # axes curve and point datamodel
         self.axesxModel = QStandardItemModel()
         self.axesyModel = QStandardItemModel()
+        self.axesxSelectModel = QItemSelectionModel(self.axesxModel)
+        self.axesySelectModel = QItemSelectionModel(self.axesyModel)
         self.curveModel = QStandardItemModel()
         self.pointsModel = QStandardItemModel()
 
@@ -77,7 +79,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.pointsModel.itemChanged.connect(self.changePointOrder)
 
         # state
-        self.modified = False
         self._lastCurve = None
 
     def load(self, proj):
@@ -92,9 +93,10 @@ class GraphDigitGraphicsView(QGraphicsView):
             item.Axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
-            item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
             self.axesxObjs[item] = xcoord
-            self.axesxModel.appendRow([QStandardItem("x:{}".format(xpos)), QStandardItem(str(xcoord))])
+            labelitem =QStandardItem("x:{}".format(xpos))
+            labelitem.setData(item)
+            self.axesxModel.appendRow([labelitem, QStandardItem(str(xcoord))])
             self.xNo += 1
             self.axesxModel.setVerticalHeaderItem(self.axesxModel.rowCount() - 1, QStandardItem("x{}".format(self.xNo)))
         for ypos, ycoord in proj.data["axesyObjs"].items():
@@ -104,9 +106,10 @@ class GraphDigitGraphicsView(QGraphicsView):
             item.Axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
-            item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
             self.axesyObjs[item] = ycoord
-            self.axesyModel.appendRow([QStandardItem("y:{}".format(ypos)), QStandardItem(str(ycoord))])
+            labelitem =QStandardItem("y:{}".format(ypos))
+            labelitem.setData(item)
+            self.axesyModel.appendRow([labelitem, QStandardItem(str(ycoord))])
         # curve
         for curve in proj.data["curves"]:
             self.pointObjs[curve] = []
@@ -130,7 +133,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.sigModified.emit(True)
 
     def resetview(self):
-        self.xNo, self.yNo = 0, 0
         self.setGraphImage(None)
         for obj in self.axesxObjs:
             self.scene.removeItem(obj)
@@ -158,13 +160,14 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
         self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
         self.sigModified.emit(True)
+        self.mode = OpMode.select
 
     def dump(self):
         proj = self.proj
         # axes
         for item, xcoord in self.axesxObjs.items():
             proj.data["axesxObjs"][item.pos().x()] = xcoord
-        for item, ycoord in self.axesxObjs.items():
+        for item, ycoord in self.axesyObjs.items():
             proj.data["axesyObjs"][item.pos().y()] = ycoord
         # curve
         for curve in self.pointObjs:
@@ -183,14 +186,47 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.sigModified.emit(True)
             elif isinstance(item, QGraphicsAxesItem):
                 if item.Axis == "x":
-                    item.setPos(self.mapToScene(evt.pos()).x(), 0)
+                    if self.mode != OpMode.axesx:
+                        self.scene.clearSelection()
+                        return
+                    self.axesySelectModel.clear()
+                    for i in range(self.axesxModel.rowCount()):
+                        if self.axesxModel.item(i, 0).data() is item:
+                            parent = QModelIndex()
+                            topleftindex = self.axesxModel.index(i, 0, parent)  # self.axesxModel.item(i,0).index()
+                            rightbottomindex = self.axesxModel.index(i, 1, parent)
+                            self.axesxSelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                         QItemSelectionModel.Select)
+                            self.axesxModel.item(i, 0).setText("x:{}".format(evt.pos().x()))
+                            break
+
                     item.setLine(0, self.scene.sceneRect().y(), 0,
                                  self.scene.sceneRect().y() + self.scene.sceneRect().height())
+                    item.setPos(self.mapToScene(evt.pos()).x(), 0)
+                    self.sigModified.emit(True)
+                    self.calGridCoord()
+                    self.updateGrid()
+
                 elif item.Axis == "y":
-                    item.setPos(0, self.mapToScene(evt.pos()).y())
+                    if self.mode != OpMode.axesy:
+                        self.scene.clearSelection()
+                        return
+                    self.axesxSelectModel.clear()
+                    for i in range(self.axesyModel.rowCount()):
+                        if self.axesyModel.item(i, 0).data() is item:
+                            topleftindex = self.axesyModel.index(i, 0)  # self.axesxModel.item(i,0).index()
+                            rightbottomindex = self.axesyModel.index(i, 1)
+                            self.axesySelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                         QItemSelectionModel.Select)
+                            self.axesyModel.item(i, 0).setText("y:{}".format(evt.pos().y()))
+                            break
+
                     item.setLine(self.scene.sceneRect().x(), 0,
                                  self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
-                self.sigModified.emit(True)
+                    item.setPos(0, self.mapToScene(evt.pos()).y())
+                    self.sigModified.emit(True)
+                    self.calGridCoord()
+                    self.updateGrid()
 
         # self.updateCurve(self.currentCurve)
         # self.repaint()
@@ -209,6 +245,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             pass
             # super().mousePressEvent(event)
         elif self.mode is OpMode.axesx and clicked:
+            self.axesxSelectModel.clear()
+            self.axesySelectModel.clear()
             for axisitem in self.axesxObjs:
                 if ptscene.x() == axisitem.pos().x():
                     return
@@ -231,14 +269,25 @@ class GraphDigitGraphicsView(QGraphicsView):
                                                   self.tr("set the x coord for axis"), nextx)
             if okPressed and x not in self.axesxObjs.values():
                 self.axesxObjs[item] = x
-                self.axesxModel.appendRow([QStandardItem("x:{}".format(item.pos().x())), QStandardItem(str(x))])
+                labelItem = QStandardItem("x:{}".format(item.pos().x()))
+                labelItem.setData(item)
+                self.axesxModel.appendRow([labelItem, QStandardItem(str(x))])
                 self.calGridCoord("x")
                 self.updateGrid()
-                item.setSelected(True)
+                # item.setSelected(True)
+                for i in range(self.axesxModel.rowCount()):
+                    if self.axesxModel.item(i, 0).data() is item:
+                        topleftindex = self.axesxModel.index(i, 0)  # self.axesxModel.item(i,0).index()
+                        rightbottomindex = self.axesxModel.index(i, 1)
+                        self.axesxSelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                     QItemSelectionModel.Select)
+                        break
                 self.sigModified.emit(True)
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.axesy and clicked:
+            self.axesxSelectModel.clear()
+            self.axesySelectModel.clear()
             for axisitem in self.axesxObjs:
                 if ptscene.y() == axisitem.pos().y():
                     return
@@ -261,10 +310,20 @@ class GraphDigitGraphicsView(QGraphicsView):
                                                   self.tr("set the y coord for axis"), nexty)
             if okPressed and y not in self.axesyObjs.values():
                 self.axesyObjs[item] = y
-                self.axesyModel.appendRow([QStandardItem("y:{}".format(item.pos().y())), QStandardItem(str(y))])
+                labelItem = QStandardItem("y:{}".format(item.pos().y()))
+                labelItem.setData(item)
+                self.axesyModel.appendRow([labelItem, QStandardItem(str(y))])
                 self.calGridCoord("y")
                 self.updateGrid()
-                item.setSelected(True)
+                # item.setSelected(True)
+
+                for i in range(self.axesyModel.rowCount()):
+                    if self.axesyModel.item(i, 0).data() is item:
+                        topleftindex = self.axesyModel.index(i, 0)  # self.axesxModel.item(i,0).index()
+                        rightbottomindex = self.axesyModel.index(i, 1)
+                        self.axesySelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                     QItemSelectionModel.Select)
+                        break
                 self.sigModified.emit(True)
             else:
                 self.scene.removeItem(item)
@@ -280,8 +339,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             ptitem.linewidth = 1
             ptitem.setPos(ptscene)
             ptitem.parentCurve = self.currentCurve
-            ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
-                            | QGraphicsItem.ItemIsMovable)
+            # ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
+            #                 | QGraphicsItem.ItemIsMovable)
             self.scene.addItem(ptitem)
 
             i = pointInsertPosition(ptitem, self.pointObjs[self.currentCurve])

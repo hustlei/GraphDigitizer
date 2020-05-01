@@ -11,7 +11,7 @@ from PyQt5.QtCore import Qt, QModelIndex, QMetaEnum
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInputDialog, QDialog, QLabel, QFormLayout, \
     QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox, QMessageBox, qApp, \
-    QLineEdit
+    QLineEdit, QGraphicsItem
 
 from core.graphicsView import GraphDigitGraphicsView
 from .enums import OpMode
@@ -86,12 +86,32 @@ class MainWin(MainWinBase):
             self.view.showAxes(False)
         else:
             self.view.setCursor(Qt.CrossCursor)
-            if self.view.mode == OpMode.axesx or self.view.mode == OpMode.axesy:
+            if self.view.mode == OpMode.axesx:
                 self.view.showAxes(True)
                 self.docktabwidget.setCurrentIndex(0)
+                self.view.scene.clearSelection()
+                for item in self.view.axesyObjs:
+                    item.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                    item.setFlag(QGraphicsItem.ItemIsFocusable, False)
+                    item.setFlag(QGraphicsItem.ItemIsMovable, False)
+                for item in self.view.axesxObjs:
+                    item.setFlags(
+                        QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+            elif self.view.mode == OpMode.axesy:
+                self.view.showAxes(True)
+                self.docktabwidget.setCurrentIndex(0)
+                self.view.scene.clearSelection()
+                for item in self.view.axesyObjs:
+                    item.setFlags(
+                        QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+                for item in self.view.axesxObjs:
+                    item.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                    item.setFlag(QGraphicsItem.ItemIsFocusable, False)
+                    item.setFlag(QGraphicsItem.ItemIsMovable, False)
             else:
                 self.view.showAxes(False)
                 self.docktabwidget.setCurrentIndex(1)
+                self.view.scene.clearSelection()
 
     def setupActions(self):
         self.actions["import"].triggered.connect(self.importimage)
@@ -143,6 +163,8 @@ class MainWin(MainWinBase):
             def createEditor(self, QWidget, QStyleOptionViewItem, QModelIndex):
                 return None
 
+        self.axesxTable.setSelectionModel(self.view.axesxSelectModel)
+        self.axesyTable.setSelectionModel(self.view.axesySelectModel)
         self.axesxTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesxTable))
         self.axesyTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesyTable))
         self.curveTable.setItemDelegateForColumn(1, ReadOnlyDelegate(self.curveTable))
@@ -185,6 +207,8 @@ class MainWin(MainWinBase):
 
         self.actions["showoriginalgraph"].triggered.connect(showoriginalgraph)
         self.actions["showoriginalgraph"].setChecked(True)
+
+        self.view.sigModified.connect(self.slotModified)
 
     def scalegraph(self):
         scale, ok = QInputDialog.getDouble(self, self.tr("scale the graph"),
@@ -272,7 +296,7 @@ class MainWin(MainWinBase):
             self.view.proj.gridy = [str2num(ymintextbox.text()), str2num(ymaxtextbox.text()),
                                     str2num(ysteptextbox.text())]
             self.view.proj.gridLineWidth = spinboxWidth.value()
-            self.view.proj.gridColor = QColor(colorCombo.currentData()) # .currentText())
+            self.view.proj.gridColor = QColor(colorCombo.currentData())  # .currentText())
             self.view.proj.gridLineType = lineCombo.currentData()
             self.view.proj.gridOpacity = spinboxOpacity.value()
             self.view.calGridCoord()
@@ -310,9 +334,6 @@ class MainWin(MainWinBase):
             self.statusbar.showMessage(self.tr("save failure."))
 
     def open(self, file=None):
-        if self.view.modified:
-            pass  # TODO
-
         if not file:
             file, _ = QFileDialog.getOpenFileName(self, self.tr("open project"), "",
                                                   "digi (*.digi);;all(*.*)")  # _是filefilter
@@ -325,11 +346,12 @@ class MainWin(MainWinBase):
                             self.new()
                             self.view.proj = dill.load(f)
                             tmp = Digi()  # update old project format to new version
-                            for k,v in tmp.__dict__.items():
+                            for k, v in tmp.__dict__.items():
                                 if k not in self.view.proj.__dict__:
                                     self.view.proj.__dict__[k] = v
                             self.view.load(self.view.proj)
                     self.file = file
+                    self.view.sigModified.emit(False)
                     self.statusbar.showMessage(self.tr("open successfully."))
                 else:
                     self.statusbar.showMessage(self.tr("open failure"))
@@ -339,7 +361,7 @@ class MainWin(MainWinBase):
             self.statusbar.showMessage(self.tr("nothing opened"))
 
     def closeEvent(self, e):
-        if self.view.modified:
+        if self.actions["save"].isEnable():
             msg = QMessageBox(QMessageBox.Question, self.title,
                               self.tr("Current file hasn't been saved, do you want to save?"),
                               QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)

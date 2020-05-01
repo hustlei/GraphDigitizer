@@ -33,9 +33,6 @@ class Digi():
         # chart image
         self.img = None  # QPixmap, set by setImgpath
         self.imgScale = 1
-        # axes
-        self.axesxs = []
-        self.axesys = []
         # grid
         self.gridx = [None, None, None]  # min max step
         self.gridy = [None, None, None]  # min max step
@@ -65,8 +62,8 @@ class Digi():
             self.gridColor = QColor("cornflowerblue") # Qt.gray
             self.gridOpacity = 1
 
-        self.data["axesxObjs"] = []  # [x1,x2,x3]
-        self.data["axesyObjs"] = []  # [y1,y2,y3]
+        self.data["axesxObjs"] = {}  # [x1,x2,x3]
+        self.data["axesyObjs"] = {}  # [y1,y2,y3]
         self.data["curves"] = {}  # {'default':(x1,y1),(x2,y2)}
 
     @staticmethod

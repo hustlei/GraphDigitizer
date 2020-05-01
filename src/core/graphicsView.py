@@ -87,7 +87,13 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.setGraphImage(proj.img)
         self.scaleGraphImage(proj.imgScale)
         # axes
+        xadded = []
+        yadded = []
         for xpos, xcoord in proj.data["axesxObjs"].items():
+            if xpos in xadded:
+                continue
+            else:
+                xadded.append(xpos)
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
             item.setPos(xpos, 0)
@@ -101,6 +107,10 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.xNo += 1
             self.axesxModel.setVerticalHeaderItem(self.axesxModel.rowCount() - 1, QStandardItem("x{}".format(self.xNo)))
         for ypos, ycoord in proj.data["axesyObjs"].items():
+            if ypos in yadded:
+                continue
+            else:
+                yadded.append(ypos)
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
             item.setPos(0, ypos)
@@ -400,6 +410,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                         self.scene.removeItem(line)
                         self.sigModified.emit(True)
                         break
+            self.calGridCoord()
+            self.updateGrid()
 
     def deleteSelectedItem(self):
         pointitems = self.scene.selectedItems()

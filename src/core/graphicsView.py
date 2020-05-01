@@ -77,6 +77,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         # init
         self.currentCurve = None
         self.pointsModel.itemChanged.connect(self.changePointOrder)
+        self.curveModel.itemChanged.connect(self.changeCurveVisible)
 
         # state
         self._lastCurve = None
@@ -94,7 +95,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             self.axesxObjs[item] = xcoord
-            labelitem =QStandardItem("x:{}".format(xpos))
+            labelitem = QStandardItem("x:{}".format(xpos))
             labelitem.setData(item)
             self.axesxModel.appendRow([labelitem, QStandardItem(str(xcoord))])
             self.xNo += 1
@@ -107,7 +108,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             self.axesyObjs[item] = ycoord
-            labelitem =QStandardItem("y:{}".format(ypos))
+            labelitem = QStandardItem("y:{}".format(ypos))
             labelitem.setData(item)
             self.axesyModel.appendRow([labelitem, QStandardItem(str(ycoord))])
         # curve
@@ -131,6 +132,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.calGridCoord()
         self.updateGrid()
         self.sigModified.emit(True)
+        self.mode = OpMode.select
 
     def resetview(self):
         self.setGraphImage(None)
@@ -437,6 +439,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         item3.setCheckable(True)
         item3.setAutoTristate(False)
         item3.setEditable(False)
+        item3.setCheckState(Qt.Checked)
         self.curveModel.appendRow([item1, item2, item3])
         self.changeCurrentCurve(name)
         self.sigModified.emit(True)
@@ -457,6 +460,12 @@ class GraphDigitGraphicsView(QGraphicsView):
                     if item.text() == name:
                         item.setText(newname)
                         self.sigModified.emit(True)
+
+    def showCurve(self, curvename, visible=True):
+        for pts in self.pointObjs[curvename]:
+            pts.setVisible(visible)
+        for line in self.curveObjs[curvename]:
+            line.setVisible(visible)
 
     def updateCurve(self, name, color=Qt.black):
         # if name in self.curveObjs:
@@ -673,6 +682,12 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.updateCurve(self._lastCurve)
         self.updateCurve(self.currentCurve, Qt.red)
         self.updateCurvePoints(name)
+
+    def changeCurveVisible(self, item):
+        if item.index().column() == 2:
+            visible = item.checkState()
+            curvename = self.curveModel.item(item.index().row(), 1).text()
+            self.showCurve(curvename, visible)
 
     def changePointOrder(self, item):
         row = item.row()

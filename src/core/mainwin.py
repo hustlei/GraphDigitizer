@@ -352,6 +352,7 @@ class MainWin(MainWinBase):
                             self.view.load(self.view.proj)
                     self.file = file
                     self.view.sigModified.emit(False)
+                    self.actions["select"].trigger()
                     self.statusbar.showMessage(self.tr("open successfully."))
                 else:
                     self.statusbar.showMessage(self.tr("open failure"))

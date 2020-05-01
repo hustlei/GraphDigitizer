@@ -39,6 +39,12 @@ class MainWin(MainWinBase):
         self.updatePixelCoordStatus(pt.x(), pt.y())
         self.updatePointCoordStatus(ptscene)
 
+    def slotModified(self, modified):
+        if modified:
+            self.actions["save"].setEnabled(True)
+        else:
+            self.actions["save"].setEnabled(False)
+
     # action funcs
     def new(self):
         """create new GraphDigitGrapicsView"""
@@ -298,6 +304,7 @@ class MainWin(MainWinBase):
             with open(self.fileop.datafile, 'wb') as datafile:
                 dill.dump(self.view.proj, datafile)
             self.fileop.save(file)
+            self.view.sigModified.emit(False)
             self.statusbar.showMessage(self.tr("save successfully."))
         else:
             self.statusbar.showMessage(self.tr("save failure."))

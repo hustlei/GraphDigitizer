@@ -25,6 +25,7 @@ from core.utils.algor import *
 
 class GraphDigitGraphicsView(QGraphicsView):
     sigMouseMovePoint = pyqtSignal(QPoint, QPointF)
+    sigModified = pyqtSignal(bool)
 
     # 自定义信号sigMouseMovePoint，当鼠标移动时，在mouseMoveEvent事件中，将当前的鼠标位置发送出去
     # QPoint--传递的是view坐标
@@ -126,6 +127,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         # grid
         self.calGridCoord()
         self.updateGrid()
+        self.sigModified.emit(True)
 
     def resetview(self):
         self.xNo, self.yNo = 0, 0
@@ -155,6 +157,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.pointsModel.setHorizontalHeaderLabels(["order", "x", "y"])
         self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
         self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
+        self.sigModified.emit(True)
 
     def dump(self):
         proj = self.proj
@@ -177,7 +180,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         if item:
             if isinstance(item, QGraphicsPointItem) and item.parentCurve:
                 self.changeCurrentCurve(item.parentCurve)
-
+                self.sigModified.emit(True)
             elif isinstance(item, QGraphicsAxesItem):
                 if item.Axis == "x":
                     item.setPos(self.mapToScene(evt.pos()).x(), 0)
@@ -187,6 +190,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                     item.setPos(0, self.mapToScene(evt.pos()).y())
                     item.setLine(self.scene.sceneRect().x(), 0,
                                  self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
+                self.sigModified.emit(True)
 
         # self.updateCurve(self.currentCurve)
         # self.repaint()
@@ -224,6 +228,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.calGridCoord("x")
                 self.updateGrid()
                 item.setSelected(True)
+                self.sigModified.emit(True)
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.axesy and clicked:
@@ -246,6 +251,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.calGridCoord("y")
                 self.updateGrid()
                 item.setSelected(True)
+                self.sigModified.emit(True)
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.curve and clicked:
@@ -267,6 +273,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             i = pointInsertPosition(ptitem, self.pointObjs[self.currentCurve])
             self.pointObjs[self.currentCurve].insert(i, ptitem)
             self.updateCurve(self.currentCurve, Qt.red)
+            self.sigModified.emit(True)
             ptitem.setSelected(True)
 
             # item1=QGraphicsRectItem(rect)  #创建矩形---以场景为坐标
@@ -287,28 +294,32 @@ class GraphDigitGraphicsView(QGraphicsView):
                         curvechange = curvename
                         pointitems.remove(ptitem)
                         self.scene.removeItem(item)
+                        self.sigModified.emit(True)
                         break
         if curvechange:
             self.updateCurve(curvechange)
 
         if isinstance(item, QGraphicsAxesItem):
-            for line in enumerate(self.axesxObjs):
+            for line in self.axesxObjs:
                 if line is item:
                     for i in range(self.axesxModel.rowCount()):
-                        if float(self.axesxModel.item(i, 0).test().strip("x")) == line.pos().x():
+                        if float(self.axesxModel.item(i, 0).text().strip("x:")) == line.pos().x():
                             self.axesxModel.removeRow(i)
                             break
                     self.axesxObjs.pop(line)
                     self.scene.removeItem(line)
-            for i, line in enumerate(self.axesyObjs):
+                    self.sigModified.emit(True)
+                    break
+            for line in self.axesyObjs:
                 if line is item:
-                    self.axesyModel.removeRow(i)
                     for i in range(self.axesyModel.rowCount()):
-                        if float(self.axesyModel.item(i, 0).test().strip("y")) == line.pos().y():
+                        if float(self.axesyModel.item(i, 0).text().strip("y:")) == line.pos().y():
                             self.axesyModel.removeRow(i)
                             break
                     self.axesyObjs.pop(line)
                     self.scene.removeItem(line)
+                    self.sigModified.emit(True)
+                    break
 
     def deleteSelectedItem(self):
         pointitems = self.scene.selectedItems()
@@ -324,6 +335,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.graphicsPixmapItem.setPixmap(img)
             self.scene.setSceneRect(0, 0, img.width(), img.height())
             self.scene.clearSelection()  # 【清除选择】
+            self.sigModified.emit(True)
             return True
         else:
             return False
@@ -336,6 +348,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.scene.setSceneRect(0, 0, self.graphicsPixmapItem.pixmap().width() * scale,
                                     self.graphicsPixmapItem.pixmap().height() * scale)
         self.scene.clearSelection()  # 【清除选择】
+        self.sigModified.emit(True)
 
     def addCurve(self, name=None):
         if not name:
@@ -353,6 +366,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         item3.setEditable(False)
         self.curveModel.appendRow([item1, item2, item3])
         self.changeCurrentCurve(name)
+        self.sigModified.emit(True)
 
     def renameCurve(self, newname=None, name=None):
         if name not in self.curveObjs:
@@ -369,6 +383,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                     item = self.curveModel.item(i, 1)
                     if item.text() == name:
                         item.setText(newname)
+                        self.sigModified.emit(True)
 
     def updateCurve(self, name, color=Qt.black):
         # if name in self.curveObjs:
@@ -624,19 +639,19 @@ class GraphDigitGraphicsView(QGraphicsView):
             gridxs = []
             for item in self.axesxObjs:
                 gridxs.append(item.pos().x())
-            coordx = self.axesxObjs.values()
+            coordx = list(self.axesxObjs.values())
             xCoords = interp(gridxs, coordx, xlist)
         else:
-            xCoords = []
+            xCoords = xlist
 
         if len(self.axesyObjs) >= 2:
             gridys = []
             for item in self.axesyObjs:
                 gridys.append(item.pos().y())
-            coordy = self.axesyObjs.values()
+            coordy = list(self.axesyObjs.values())
             yCoords = interp(gridys, coordy, ylist)
         else:
-            yCoords = []
+            yCoords = ylist
 
         return (xCoords, yCoords)
 
@@ -648,7 +663,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             coordx = list(self.axesxObjs.values())
             xposs = interp(coordx, gridxpos, xlist)
         else:
-            xposs = []
+            xposs = xlist
 
         if len(self.axesyObjs) >= 2:
             gridypos = []
@@ -657,7 +672,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             coordy = list(self.axesyObjs.values())
             yposs = interp(coordy, gridypos, ylist)
         else:
-            yposs = []
+            yposs = ylist
 
         return (xposs, yposs)
 

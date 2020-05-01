@@ -501,6 +501,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             for i in range(1, len(points)):
                 l = QGraphicsLineItem(points[i - 1].x(), points[i - 1].y(), points[i].x(), points[i].y())
                 l.setPen(color)
+                l.setZValue(10)
                 # l.setFlag(QGraphicsItem.ItemIsSelectable)
                 self.curveObjs[name].append(l)
                 self.scene.addItem(l)
@@ -593,11 +594,13 @@ class GraphDigitGraphicsView(QGraphicsView):
             clr.setAlphaF(self.proj.gridOpacity)
             for x in self.gridxpos:
                 line = QGraphicsLineItem(x, self.gridypos[0], x, self.gridypos[-1])
+                line.setZValue(5)
                 line.setPen(QPen(clr, self.proj.gridLineWidth, self.proj.gridLineType))
                 self.gridObjs.append(line)
                 self.scene.addItem(line)
             for y in self.gridypos:
                 line = QGraphicsLineItem(self.gridxpos[0], y, self.gridxpos[-1], y)
+                line.setZValue(5)
                 line.setPen(QPen(clr, self.proj.gridLineWidth, self.proj.gridLineType))
                 self.gridObjs.append(line)
                 self.scene.addItem(line)

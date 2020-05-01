@@ -14,6 +14,7 @@ class QGraphicsAxesItem(QGraphicsLineItem):
     def __init__(self,x1,y1,x2,y2,parent=None):
         super().__init__(x1,y1,x2,y2,parent)
         self.Axis = None
+        self.setZValue(100)
 
 class QGraphicsPointItem(QGraphicsItem):
     """Item for point
@@ -26,6 +27,7 @@ class QGraphicsPointItem(QGraphicsItem):
         self.linewidth = linewidth
         self.pointColor = Qt.red
         self.parentCurve = None
+        self.setZValue(200)
 
     def boundingRect(self):
         return QRectF(-self.pointSize[0] / 2, -self.pointSize[1] / 2, self.pointSize[0], self.pointSize[1])

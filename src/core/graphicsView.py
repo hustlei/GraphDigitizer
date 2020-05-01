@@ -91,7 +91,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
             item.setPos(xpos, 0)
-            item.Axis = "x"
+            item.axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             self.axesxObjs[item] = xcoord
@@ -104,7 +104,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
             item.setPos(0, ypos)
-            item.Axis = "y"
+            item.axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             self.axesyObjs[item] = ycoord
@@ -166,6 +166,9 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def dump(self):
         proj = self.proj
+        proj.data["axesxObjs"] = {}  # [x1,x2,x3]
+        proj.data["axesyObjs"] = {}  # [y1,y2,y3]
+        proj.data["curves"] = {}  # {'default':(x1,y1),(x2,y2)}
         # axes
         for item, xcoord in self.axesxObjs.items():
             proj.data["axesxObjs"][item.pos().x()] = xcoord
@@ -187,7 +190,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                 self.changeCurrentCurve(item.parentCurve)
                 self.sigModified.emit(True)
             elif isinstance(item, QGraphicsAxesItem):
-                if item.Axis == "x":
+                if item.axis == "x":
                     if self.mode != OpMode.axesx:
                         self.scene.clearSelection()
                         return
@@ -209,7 +212,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                     self.calGridCoord()
                     self.updateGrid()
 
-                elif item.Axis == "y":
+                elif item.axis == "y":
                     if self.mode != OpMode.axesy:
                         self.scene.clearSelection()
                         return
@@ -255,7 +258,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
             item.setPos(ptscene.x(), 0)
-            item.Axis = "x"
+            item.axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
@@ -296,7 +299,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
             item.setPos(0, ptscene.y())
-            item.Axis = "y"
+            item.axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
             self.scene.addItem(item)
             item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
@@ -375,26 +378,28 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.updateCurve(curvechange)
 
         if isinstance(item, QGraphicsAxesItem):
-            for line in self.axesxObjs:
-                if line is item:
-                    for i in range(self.axesxModel.rowCount()):
-                        if float(self.axesxModel.item(i, 0).text().strip("x:")) == line.pos().x():
-                            self.axesxModel.removeRow(i)
-                            break
-                    self.axesxObjs.pop(line)
-                    self.scene.removeItem(line)
-                    self.sigModified.emit(True)
-                    break
-            for line in self.axesyObjs:
-                if line is item:
-                    for i in range(self.axesyModel.rowCount()):
-                        if float(self.axesyModel.item(i, 0).text().strip("y:")) == line.pos().y():
-                            self.axesyModel.removeRow(i)
-                            break
-                    self.axesyObjs.pop(line)
-                    self.scene.removeItem(line)
-                    self.sigModified.emit(True)
-                    break
+            if item.axis == "x":
+                for line in self.axesxObjs:
+                    if line is item:
+                        for i in range(self.axesxModel.rowCount()):
+                            if self.axesxModel.item(i, 0).data() is item: #float(self.axesxModel.item(i, 0).text().strip("x:")) == line.pos().x():
+                                self.axesxModel.removeRow(i)
+                                break
+                        self.axesxObjs.pop(line)
+                        self.scene.removeItem(line)
+                        self.sigModified.emit(True)
+                        break
+            elif item.axis == "y":
+                for line in self.axesyObjs:
+                    if line is item:
+                        for i in range(self.axesyModel.rowCount()):
+                            if float(self.axesyModel.item(i, 0).text().strip("y:")) == line.pos().y():
+                                self.axesyModel.removeRow(i)
+                                break
+                        self.axesyObjs.pop(line)
+                        self.scene.removeItem(line)
+                        self.sigModified.emit(True)
+                        break
 
     def deleteSelectedItem(self):
         pointitems = self.scene.selectedItems()
@@ -646,6 +651,34 @@ class GraphDigitGraphicsView(QGraphicsView):
                 data[curve][1].append(item.y())
             data[curve] = self.pointToCoord(data[curve][0], data[curve][1])
         return data
+
+    def axisvalid(self):
+        """if there are axes with same coord value,
+        or if there are axes at the save position,
+        return False"""
+        a = len(self.axesxObjs)
+        b = len(set(self.axesxObjs.values()))
+        if a != b:
+            return False
+        a = len(self.axesyObjs)
+        b = len(set(self.axesyObjs.values()))
+        if a != b:
+            return False
+        xs = []
+        for item in self.axesxObjs:
+            xs.append(item.pos().x())
+        ys = []
+        for item in self.axesyObjs:
+            ys.append(item.pos().y())
+        a = len(xs)
+        b = len(set(xs))
+        if a != b:
+            return False
+        a = len(ys)
+        b = len(set(ys))
+        if a != b:
+            return False
+
 
     def exportToCSVtext(self):
         """return text in csv format, like following:

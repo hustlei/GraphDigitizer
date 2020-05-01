@@ -51,9 +51,6 @@ class Digi():
         if newproject:
             self.img = None  # QPixmap, set by setImgpath
             self.imgScale = 1
-            # axes
-            self.axesxs = []
-            self.axesys = []
             # grid
             self.gridx = [None, None, None]  # min max step
             self.gridy = [None, None, None]  # min max step

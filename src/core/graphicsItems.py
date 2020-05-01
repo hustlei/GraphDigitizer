@@ -13,7 +13,7 @@ from .enums import PointType
 class QGraphicsAxesItem(QGraphicsLineItem):
     def __init__(self,x1,y1,x2,y2,parent=None):
         super().__init__(x1,y1,x2,y2,parent)
-        self.Axis = None
+        self.axis = None
         self.setZValue(100)
 
 class QGraphicsPointItem(QGraphicsItem):

@@ -307,6 +307,8 @@ class MainWin(MainWinBase):
             file, _ = QFileDialog.getSaveFileName(self, self.tr("Export Curves"), "",
                                                   "CSV (*.csv);;all(*.*)")  # _是filefilter
         if file:
+            if not self.view.axisvalid():
+                QMessageBox.information("export error", "there are axes with the same coordinate, please check, the exported data may be not accurate")
             with open(file, "w", encoding="utf8") as f:
                 f.write(self.view.exportToCSVtext())
             self.statusbar.showMessage(self.tr("export successfully."))
@@ -362,7 +364,7 @@ class MainWin(MainWinBase):
             self.statusbar.showMessage(self.tr("nothing opened"))
 
     def closeEvent(self, e):
-        if self.actions["save"].isEnable():
+        if self.actions["save"].isEnabled():
             msg = QMessageBox(QMessageBox.Question, self.title,
                               self.tr("Current file hasn't been saved, do you want to save?"),
                               QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel)

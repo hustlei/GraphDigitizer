@@ -220,8 +220,15 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.scene.addItem(item)
             item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
 
+            xs = list(self.axesxObjs.values())
+            if not self.axesxObjs:
+                nextx = 0
+            elif len(self.axesxObjs) == 1:
+                nextx = xs[0] + 0.1
+            else:
+                nextx = 2 * xs[-1] - xs[-2]
             x, okPressed = QInputDialog.getDouble(self, self.tr("set x coordiniate"),
-                                                  self.tr("set the x coord for axis"))
+                                                  self.tr("set the x coord for axis"), nextx)
             if okPressed and x not in self.axesxObjs.values():
                 self.axesxObjs[item] = x
                 self.axesxModel.appendRow([QStandardItem("x:{}".format(item.pos().x())), QStandardItem(str(x))])
@@ -243,8 +250,15 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.scene.addItem(item)
             item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
 
+            ys = list(self.axesyObjs.values())
+            if not self.axesyObjs:
+                nexty = 0
+            elif len(self.axesyObjs) == 1:
+                nexty = ys[0] + 0.1
+            else:
+                nexty = 2 * ys[-1] - ys[-2]
             y, okPressed = QInputDialog.getDouble(self, self.tr("set y coordiniate"),
-                                                  self.tr("set the y coord for axis"))
+                                                  self.tr("set the y coord for axis"), nexty)
             if okPressed and y not in self.axesyObjs.values():
                 self.axesyObjs[item] = y
                 self.axesyModel.appendRow([QStandardItem("y:{}".format(item.pos().y())), QStandardItem(str(y))])

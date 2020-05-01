@@ -56,7 +56,7 @@ def perpendOnLine(point, p1, p2):
     return 0
 
 
-def interp(xlist, ylist, newxlist, maxkind=3):
+def interp(xlist, ylist, newxlist, maxkind=2):
     d1 = {}
     for i in range(len(xlist)):
         d1[xlist[i]] = ylist[i]

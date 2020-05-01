@@ -248,7 +248,9 @@ class MainWin(MainWinBase):
         buttonBox.rejected.connect(dialog.reject)
 
         lineCombo.setCurrentIndex(lineCombo.findData(self.view.proj.gridLineType))
-        colorCombo.setCurrentIndex(colorCombo.findData(self.view.proj.gridColor))
+        if not isinstance(self.view.proj.gridColor, QColor):
+            self.view.proj.gridColor = QColor(self.view.proj.gridColor)
+        colorCombo.setCurrentIndex(colorCombo.findData(self.view.proj.gridColor.name()))
         spinboxWidth.setValue(self.view.proj.gridLineWidth)
         spinboxOpacity.setValue(self.view.proj.gridOpacity)
         xmintextbox.setText(str(self.view.proj.gridx[0]) if self.view.proj.gridx[0] is not None else "")
@@ -264,7 +266,7 @@ class MainWin(MainWinBase):
             self.view.proj.gridy = [str2num(ymintextbox.text()), str2num(ymaxtextbox.text()),
                                     str2num(ysteptextbox.text())]
             self.view.proj.gridLineWidth = spinboxWidth.value()
-            self.view.proj.gridColor = QColor(colorCombo.currentText())
+            self.view.proj.gridColor = QColor(colorCombo.currentData()) # .currentText())
             self.view.proj.gridLineType = lineCombo.currentData()
             self.view.proj.gridOpacity = spinboxOpacity.value()
             self.view.calGridCoord()
@@ -320,6 +322,7 @@ class MainWin(MainWinBase):
                                 if k not in self.view.proj.__dict__:
                                     self.view.proj.__dict__[k] = v
                             self.view.load(self.view.proj)
+                    self.file = file
                     self.statusbar.showMessage(self.tr("open successfully."))
                 else:
                     self.statusbar.showMessage(self.tr("open failure"))

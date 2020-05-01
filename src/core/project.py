@@ -40,7 +40,7 @@ class Digi():
         self.gridx = [None, None, None]  # min max step
         self.gridy = [None, None, None]  # min max step
         self.gridLineType = Qt.DotLine
-        self.gridLineWidth = 1
+        self.gridLineWidth = 2
         self.gridColor = QColor("cornflowerblue") # Qt.gray
         self.gridOpacity = 1
         # data for save and load, including point,curve coords got by mouse on graphicsview

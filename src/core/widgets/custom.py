@@ -38,7 +38,7 @@ class QColorComboBox(QComboBox):
     def __init__(self, parent=None):
         super().__init__(parent)
         for i, clr in enumerate(QColor.colorNames()):
-            self.addItem(clr, QColor(clr))
+            self.addItem(clr, QColor(clr).name())
             self.model().item(i).setBackground(QColor(clr))
 
 # class MyQStyledItemDelegate(QStyledItemDelegate):

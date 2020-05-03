@@ -78,6 +78,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.currentCurve = None
         self.pointsModel.itemChanged.connect(self.changePointOrder)
         self.curveModel.itemChanged.connect(self.changeCurveVisible)
+        self.scene.selectionChanged.connect(self.slotSceneSeletChanged)
 
         # state
         self._lastCurve = None
@@ -171,7 +172,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.pointsModel.setHorizontalHeaderLabels(["order", "x", "y"])
         self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
         self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
-        self.sigModified.emit(True)
         self.mode = OpMode.select
 
     def dump(self):
@@ -204,7 +204,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                     if self.mode != OpMode.axesx:
                         self.scene.clearSelection()
                         return
-                    self.axesySelectModel.clear()
+                    self.axesxSelectModel.clearSelection()
+                    self.axesySelectModel.clearSelection()
                     for i in range(self.axesxModel.rowCount()):
                         if self.axesxModel.item(i, 0).data() is item:
                             parent = QModelIndex()
@@ -226,7 +227,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                     if self.mode != OpMode.axesy:
                         self.scene.clearSelection()
                         return
-                    self.axesxSelectModel.clear()
+                    self.axesxSelectModel.clearSelection()
+                    self.axesySelectModel.clearSelection()
                     for i in range(self.axesyModel.rowCount()):
                         if self.axesyModel.item(i, 0).data() is item:
                             topleftindex = self.axesyModel.index(i, 0)  # self.axesxModel.item(i,0).index()
@@ -281,7 +283,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             else:
                 nextx = 2 * xs[-1] - xs[-2]
             x, okPressed = QInputDialog.getDouble(self, self.tr("set x coordiniate"),
-                                                  self.tr("set the x coord for axis"), nextx)
+                                                  self.tr("set the x coord for axis"), nextx, decimals=3)
             if okPressed and x not in self.axesxObjs.values():
                 self.axesxObjs[item] = x
                 labelItem = QStandardItem("x:{}".format(item.pos().x()))
@@ -298,6 +300,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                                                      QItemSelectionModel.Select)
                         break
                 self.sigModified.emit(True)
+                self.scene.clearSelection()
             else:
                 self.scene.removeItem(item)
         elif self.mode is OpMode.axesy and clicked:
@@ -322,7 +325,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             else:
                 nexty = 2 * ys[-1] - ys[-2]
             y, okPressed = QInputDialog.getDouble(self, self.tr("set y coordiniate"),
-                                                  self.tr("set the y coord for axis"), nexty)
+                                                  self.tr("set the y coord for axis"), nexty, decimals=3)
             if okPressed and y not in self.axesyObjs.values():
                 self.axesyObjs[item] = y
                 labelItem = QStandardItem("y:{}".format(item.pos().y()))
@@ -372,6 +375,13 @@ class GraphDigitGraphicsView(QGraphicsView):
             # QGraphicsItem.ItemIsPanel---
             # self.scene.addItem(item1)  #给场景添加图元
 
+    def slotSceneSeletChanged(self):
+        items = self.scene.selectedItems()
+        if len(items) != 1:  # ony allow select one item
+            self.scene.clearSelection()
+            return
+        # item = items[0]
+
     def deleteItem(self, item):
         """delete point on curve or axis object"""
         curvechange = None
@@ -392,7 +402,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                 for line in self.axesxObjs:
                     if line is item:
                         for i in range(self.axesxModel.rowCount()):
-                            if self.axesxModel.item(i, 0).data() is item: #float(self.axesxModel.item(i, 0).text().strip("x:")) == line.pos().x():
+                            if self.axesxModel.item(i,
+                                                    0).data() is item:  # float(self.axesxModel.item(i, 0).text().strip("x:")) == line.pos().x():
                                 self.axesxModel.removeRow(i)
                                 break
                         self.axesxObjs.pop(line)
@@ -690,7 +701,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         b = len(set(ys))
         if a != b:
             return False
-
 
     def exportToCSVtext(self):
         """return text in csv format, like following:

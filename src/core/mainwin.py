@@ -8,7 +8,7 @@ import os
 
 import dill
 from PyQt5.QtCore import Qt, QModelIndex, QMetaEnum
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QIcon
 from PyQt5.QtWidgets import QFileDialog, QAbstractItemView, QItemDelegate, QInputDialog, QDialog, QLabel, QFormLayout, \
     QSpinBox, QDialogButtonBox, QGroupBox, QVBoxLayout, QHBoxLayout, QComboBox, QDoubleSpinBox, QMessageBox, qApp, \
     QLineEdit, QGraphicsItem
@@ -25,6 +25,10 @@ from .widgets.custom import QLineComboBox, QColorComboBox
 class MainWin(MainWinBase):
     def __init__(self):
         super(MainWin, self).__init__()
+        self.ver = "v0.20"
+        self.title = "GraphDigitizer " + self.ver
+        self.setWindowTitle(self.title)
+        self.setWindowIcon(QIcon("res/app.ico"))
         # 图形控件
         self.view = GraphDigitGraphicsView()  # 创建视图窗口
         self.mainTabWidget.addTab(self.view, "main")
@@ -34,6 +38,8 @@ class MainWin(MainWinBase):
         self.fileop = FileOp()
         self.setupActions()
         self.file = None
+        self.new()
+
 
     def slotMouseMovePoint(self, pt, ptscene):
         self.updatePixelCoordStatus(pt.x(), pt.y())
@@ -51,6 +57,7 @@ class MainWin(MainWinBase):
         self.view.proj.resetData(True)
         self.view.resetview()
         self.file = None
+        self.view.sigModified.emit(False)
 
     def importimage(self, file=None):  # _参数用于接收action的event参数,bool类型
         if not file:
@@ -91,23 +98,27 @@ class MainWin(MainWinBase):
                 self.docktabwidget.setCurrentIndex(0)
                 self.view.scene.clearSelection()
                 for item in self.view.axesyObjs:
-                    item.setFlag(QGraphicsItem.ItemIsSelectable, False)
-                    item.setFlag(QGraphicsItem.ItemIsFocusable, False)
-                    item.setFlag(QGraphicsItem.ItemIsMovable, False)
+                    item.setVisible(False)
+                    # item.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                    # item.setFlag(QGraphicsItem.ItemIsFocusable, False)
+                    # item.setFlag(QGraphicsItem.ItemIsMovable, False)
                 for item in self.view.axesxObjs:
-                    item.setFlags(
-                        QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+                    item.setVisible(True)
+                    # item.setFlags(
+                    #     QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
             elif self.view.mode == OpMode.axesy:
                 self.view.showAxes(True)
                 self.docktabwidget.setCurrentIndex(0)
                 self.view.scene.clearSelection()
                 for item in self.view.axesyObjs:
-                    item.setFlags(
-                        QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
+                    item.setVisible(True)
+                    # item.setFlags(
+                    #    QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable | QGraphicsItem.ItemIsMovable)
                 for item in self.view.axesxObjs:
-                    item.setFlag(QGraphicsItem.ItemIsSelectable, False)
-                    item.setFlag(QGraphicsItem.ItemIsFocusable, False)
-                    item.setFlag(QGraphicsItem.ItemIsMovable, False)
+                    item.setVisible(False)
+                    # item.setFlag(QGraphicsItem.ItemIsSelectable, False)
+                    # item.setFlag(QGraphicsItem.ItemIsFocusable, False)
+                    # item.setFlag(QGraphicsItem.ItemIsMovable, False)
             else:
                 self.view.showAxes(False)
                 self.docktabwidget.setCurrentIndex(1)
@@ -209,6 +220,16 @@ class MainWin(MainWinBase):
         self.actions["showoriginalgraph"].setChecked(True)
 
         self.view.sigModified.connect(self.slotModified)
+
+        # help
+        aboutText = "<b><center>" + self.title + "</center></b><br><br>"
+        aboutText += self.tr(
+            "This software is a Tool for digitize graph(like figure scanned from book).<br><br>")
+        aboutText += self.tr(
+            "author: lileilei<br>website: <a href='https://github.com/hustlei/GraphDigitizer'>https"
+            "://github.com/hustlei/GraphDigitizer</a><br><br>welcom communicate with me: hustlei@sina.cn ")
+        aboutText += "<br>copyright &copy; 2020, lileilei@WuHan."
+        self.actions["about"].triggered.connect(lambda: QMessageBox.about(self, "about", aboutText))
 
     def scalegraph(self):
         scale, ok = QInputDialog.getDouble(self, self.tr("scale the graph"),
@@ -377,7 +398,7 @@ class MainWin(MainWinBase):
                 self.save()
                 e.ignore()
             elif ret in (QMessageBox.Discard, QMessageBox.No):
-                self.updateSpecialConfig()
+                # self.updateSpecialConfig()
                 # self.config.save()
                 self.fileop.close()
                 qApp.exit()

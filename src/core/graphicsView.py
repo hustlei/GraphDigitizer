@@ -206,7 +206,12 @@ class GraphDigitGraphicsView(QGraphicsView):
         pt = evt.pos()  # 获取鼠标坐标--view坐标
         self.sigMouseMovePoint.emit(pt, self.mapToScene(pt))  # 发送鼠标位置
         QGraphicsView.mouseMoveEvent(self, evt)
-        item = self.scene.focusItem()
+        #item = self.scene.focusItem()
+        items = self.scene.selectedItems()
+        if len(items) != 1:
+            return
+        else:
+            item = items[0]
         if item:
             if isinstance(item, QGraphicsPointItem) and item.parentCurve:
                 self.changeCurrentCurve(item.parentCurve)
@@ -264,6 +269,19 @@ class GraphDigitGraphicsView(QGraphicsView):
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         self.__pressPt = event.pos()
+        ptscene = self.mapToScene(event.pos())
+        if self.mode is OpMode.axesx:
+            for axisitem in self.axesxObjs:
+                if abs(ptscene.x() - axisitem.pos().x()) < 5:
+                    self.scene.clearSelection()
+                    axisitem.setSelected(True)
+                    return
+        elif self.mode is OpMode.axesy:
+            for axisitem in self.axesyObjs:
+                if abs(ptscene.y() - axisitem.pos().y()) < 5:
+                    self.scene.clearSelection()
+                    axisitem.setSelected(True)
+                    return
 
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
@@ -277,7 +295,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.axesxSelectModel.clear()
             self.axesySelectModel.clear()
             for axisitem in self.axesxObjs:
-                if ptscene.x() == axisitem.pos().x():
+                if abs(ptscene.x() - axisitem.pos().x()) < 5:
+                    self.scene.clearSelection()
+                    axisitem.setSelected(True)
                     return
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
@@ -319,7 +339,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.axesxSelectModel.clear()
             self.axesySelectModel.clear()
             for axisitem in self.axesxObjs:
-                if ptscene.y() == axisitem.pos().y():
+                if abs(ptscene.y() - axisitem.pos().y()) < 5:
+                    self.scene.clearSelection()
+                    axisitem.setSelected(True)
                     return
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)

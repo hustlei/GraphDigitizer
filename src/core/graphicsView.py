@@ -168,11 +168,23 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.axesyModel.clear()
         self.curveModel.clear()
         self.pointsModel.clear()
+        self.axesxSelectModel.clear()
+        self.axesySelectModel.clear()
         self.curveModel.setHorizontalHeaderLabels(["current", "name", "visible"])
         self.pointsModel.setHorizontalHeaderLabels(["order", "x", "y"])
         self.axesxModel.setHorizontalHeaderLabels(["position", "x"])
         self.axesyModel.setHorizontalHeaderLabels(["position", "y"])
-        self.mode = OpMode.select
+
+        self.xNo = 0
+        self.yNo = 0
+
+        ###
+        self.mode = OpMode.default
+        # data manage
+        self.proj.resetData(True)
+        # init
+        self.currentCurve = None
+        self._lastCurve = None
 
     def dump(self):
         proj = self.proj

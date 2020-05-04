@@ -54,8 +54,8 @@ class MainWin(MainWinBase):
     # action funcs
     def new(self):
         """create new GraphDigitGrapicsView"""
-        self.view.proj.resetData(True)
         self.view.resetview()
+        self.initAxesAndCurveTable()
         self.file = None
         self.view.sigModified.emit(False)
 
@@ -152,39 +152,8 @@ class MainWin(MainWinBase):
         self.axesyTable.setModel(self.view.axesyModel)
         self.curveTable.setModel(self.view.curveModel)
         self.pointsTable.setModel(self.view.pointsModel)
-        self.axesxTable.setColumnWidth(0, 120)
-        self.axesxTable.setColumnWidth(1, 100)
-        self.axesyTable.setColumnWidth(0, 120)
-        self.axesyTable.setColumnWidth(1, 100)
-        self.curveTable.setColumnWidth(0, 50)
-        self.curveTable.setColumnWidth(1, 120)
-        self.curveTable.setColumnWidth(2, 50)
-        self.pointsTable.setColumnWidth(0, 45)
-        self.pointsTable.setColumnWidth(1, 80)
-        self.pointsTable.setColumnWidth(2, 80)
-        self.axesxTable.verticalHeader().setVisible(False)
-        self.axesyTable.verticalHeader().setVisible(False)
-        self.curveTable.verticalHeader().setVisible(False)
-        self.pointsTable.verticalHeader().setVisible(False)
 
-        class ReadOnlyDelegate(QItemDelegate):
-            def __init__(self, parent):
-                super().__init__(parent)
-
-            def createEditor(self, QWidget, QStyleOptionViewItem, QModelIndex):
-                return None
-
-        self.axesxTable.setSelectionModel(self.view.axesxSelectModel)
-        self.axesyTable.setSelectionModel(self.view.axesySelectModel)
-        self.axesxTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesxTable))
-        self.axesyTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesyTable))
-        self.curveTable.setItemDelegateForColumn(1, ReadOnlyDelegate(self.curveTable))
-        self.axesxTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.axesxTable.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.axesyTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.axesyTable.setSelectionMode(QAbstractItemView.SingleSelection)
-        self.curveTable.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.curveTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.initAxesAndCurveTable()
 
         def selectedCurve():
             name = None
@@ -230,6 +199,41 @@ class MainWin(MainWinBase):
             "://github.com/hustlei/GraphDigitizer</a><br><br>welcom communicate with me: hustlei@sina.cn ")
         aboutText += "<br>copyright &copy; 2020, lileilei@WuHan."
         self.actions["about"].triggered.connect(lambda: QMessageBox.about(self, "about", aboutText))
+
+    def initAxesAndCurveTable(self):
+        self.axesxTable.setColumnWidth(0, 120)
+        self.axesxTable.setColumnWidth(1, 100)
+        self.axesyTable.setColumnWidth(0, 120)
+        self.axesyTable.setColumnWidth(1, 100)
+        self.curveTable.setColumnWidth(0, 50)
+        self.curveTable.setColumnWidth(1, 120)
+        self.curveTable.setColumnWidth(2, 50)
+        self.pointsTable.setColumnWidth(0, 45)
+        self.pointsTable.setColumnWidth(1, 80)
+        self.pointsTable.setColumnWidth(2, 80)
+        self.axesxTable.verticalHeader().setVisible(False)
+        self.axesyTable.verticalHeader().setVisible(False)
+        self.curveTable.verticalHeader().setVisible(False)
+        self.pointsTable.verticalHeader().setVisible(False)
+
+        class ReadOnlyDelegate(QItemDelegate):
+            def __init__(self, parent):
+                super().__init__(parent)
+
+            def createEditor(self, QWidget, QStyleOptionViewItem, QModelIndex):
+                return None
+
+        self.axesxTable.setSelectionModel(self.view.axesxSelectModel)
+        self.axesyTable.setSelectionModel(self.view.axesySelectModel)
+        self.axesxTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesxTable))
+        self.axesyTable.setItemDelegateForColumn(0, ReadOnlyDelegate(self.axesyTable))
+        self.curveTable.setItemDelegateForColumn(1, ReadOnlyDelegate(self.curveTable))
+        self.axesxTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.axesxTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.axesyTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.axesyTable.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.curveTable.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.curveTable.setSelectionMode(QAbstractItemView.SingleSelection)
 
     def scalegraph(self):
         scale, ok = QInputDialog.getDouble(self, self.tr("scale the graph"),

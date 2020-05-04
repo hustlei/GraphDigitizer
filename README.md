@@ -10,7 +10,7 @@ Digtize the graph(figure/chart) from image format, such as graph scanned from bo
 
 # screenshot
 
-![GUI(v0.2) screeshot](https://hustlei.github.io/software/QssStylesheetEditor/screenshot/en/QssStylesheetEditor_v1.5.png  "GUI(v0.2)")
+![GUI(v0.2) screeshot](https://github.com/hustlei/GraphDigitizer/blob/master/docs/assets/screenshot/graphdigitizer_v0.2.png?raw=true  "GUI(v0.2)")
 
 # Features
 

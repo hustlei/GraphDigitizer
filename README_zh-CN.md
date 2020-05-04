@@ -12,7 +12,7 @@ ps：本人经常遇到需要使用扫描的曲线图，但是十分不便，所
 
 # screenshot
 
-![GUI(v0.2) screeshot](https://hustlei.github.io/software/QssStylesheetEditor/screenshot/en/QssStylesheetEditor_v1.5.png  "GUI(v0.2)")
+![GUI(v0.2) screeshot](https://github.com/hustlei/GraphDigitizer/blob/master/docs/assets/screenshot/graphdigitizer_v0.2.png?raw=true  "GUI(v0.2)")
 
 # 功能简介
 

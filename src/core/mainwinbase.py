@@ -74,7 +74,7 @@ class MainWinBase(QMainWindow):
                                          ':appres.img/save.png')
         self.actions["saveas"] = createAct(self.tr("&Save as..."), self.tr("Save as..."), None,
                                            ':appres.img/SaveAs.png')
-        self.actions["export"] = createAct(self.tr("&ExportCurves"), self.tr("ExportCurves"), "Ctrl+Alt+E",
+        self.actions["export"] = createAct(self.tr("&ExportCurves"), self.tr("Export digitized curves data"), "Ctrl+Alt+E",
                                            ':appres.img/export.png')
         self.actions["close"] = createAct(self.tr("&Close"), self.tr("Close"))
         self.actions["exit"] = createAct(self.tr("&Exit"), self.tr("Exit"), "Ctrl+Q")
@@ -101,11 +101,13 @@ class MainWinBase(QMainWindow):
                                              None,
                                              ':appres.img/grid.png',
                                              checkable=True)
+        self.actions["showgrid"].setChecked(True)
         self.actions["select"] = createAct(self.tr("Select Mode"),
                                            self.tr("Select Mode"),
                                            None,
                                            ':appres.img/select.png',
                                            checkable=True)
+        self.actions["select"].setChecked(True)
         self.actions["axesx"] = createAct(self.tr("Set x axis postions"),
                                           self.tr("Set x axis position"),
                                           None,
@@ -124,11 +126,11 @@ class MainWinBase(QMainWindow):
         self.actions["del"] = createAct(self.tr("&del point or curve"), self.tr("delete"), QKeySequence.Delete,
                                         ':appres.img/delete.png')
         self.actions["addcurve"] = createAct(self.tr("add a new curve"), self.tr("add a new curve"),
-                                             QKeySequence.Delete, ':appres.img/new.png')
-        self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change curve name"),
-                                                QKeySequence.Delete, ':appres.img/edit.png')
+                                             None, ':appres.img/new.png')
+        self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change current curve name"),
+                                                None, ':appres.img/edit.png')
 
-        self.actions["scalegraph"] = createAct(self.tr("set graph image scale"), self.tr("set graph image scale"), None,
+        self.actions["scalegraph"] = createAct(self.tr("set graph image scale"), self.tr("scale the graph image(background)"), None,
                                                ":appres.img/resizeimage.png")
         self.actions["gridsetting"] = createAct(self.tr("grid settings"), self.tr("set grid range and step"), None,
                                                ":appres.img/gridsetting.png")
@@ -159,7 +161,7 @@ class MainWinBase(QMainWindow):
                                                None,
                                                checkable=True)
 
-        self.actions["config"] = createAct(self.tr("&Config"), self.tr("settings."), None, ":appres.img/config.png")
+        self.actions["config"] = createAct(self.tr("&Config"), self.tr("settings"), None, ":appres.img/config.png")
 
         self.actions["about"] = createAct(self.tr("&About"), self.tr("About"))
 
@@ -200,17 +202,22 @@ class MainWinBase(QMainWindow):
         self.menus["Digit"].addAction(self.actions["axesx"])
         self.menus["Digit"].addAction(self.actions["axesy"])
         self.menus["Digit"].addAction(self.actions["curve"])
+        self.menus["Digit"].addSeparator()
+        self.menus["Digit"].addAction(self.actions["addcurve"])
+        self.menus["Digit"].addAction(self.actions["renamecurve"])
+        self.menus["Digit"].addAction(self.actions["del"])
 
         self.menus["View"].addAction(self.actions["zoomin"])
         self.menus["View"].addAction(self.actions["zoomout"])
         self.menus["View"].addSeparator()
-        self.menus["View"].addAction(self.actions["showgrid"])
-        self.menus["View"].addAction(self.actions["showcurves"])
-        self.menus["View"].addSeparator()
-        background = QMenu(self.tr("Graph"), self.menus["View"])
+        background = QMenu(self.tr("Graph Background"), self.menus["View"])
         background.addAction(self.actions["hidegraph"])
         background.addAction(self.actions["showoriginalgraph"])
         self.menus["View"].addMenu(background)
+        self.menus["View"].addAction(self.actions["showgrid"])
+        self.menus["View"].addSeparator()
+        self.menus["View"].addAction(self.actions["showcurves"])
+        self.menus["View"].addSeparator()
 
 
         self.menus["Config"].addAction(self.actions["config"])

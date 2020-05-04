@@ -338,7 +338,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         elif self.mode is OpMode.axesy and clicked:
             self.axesxSelectModel.clear()
             self.axesySelectModel.clear()
-            for axisitem in self.axesxObjs:
+            for axisitem in self.axesyObjs:
                 if abs(ptscene.y() - axisitem.pos().y()) < 5:
                     self.scene.clearSelection()
                     axisitem.setSelected(True)

@@ -1,4 +1,4 @@
-English | [简体中文](README_zh-CN.md)
+简体中文 | [English](README.md)
 
 # GraphDigitizer
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c56545257f004369849d4b07f90f3f12)](https://app.codacy.com/manual/hustlei/GraphDigitizer?utm_source=github.com&utm_medium=referral&utm_content=hustlei/GraphDigitizer&utm_campaign=Badge_Grade_Dashboard)
@@ -6,21 +6,23 @@ English | [简体中文](README_zh-CN.md)
 
 <br>
 
-Digtize the graph(figure/chart) from image format, such as graph scanned from book.
+曲线图（图片或扫描件）数字化的工具软件。
+
+ps：本人经常遇到需要使用扫描的曲线图，但是十分不便，所以就想把曲线图数字化，变成数据表。找到了Engauge Digitizer等软件，但是呢，这些软件坐标系都只能用三个点设置，导致扫描的图片数字化后坐标系都不准，所以我就自己编写了GraphDigitizer。如果你的曲线图坐标轴都没有变形，比例很准确，用Engauge Digitizer等软件反而更方便。
 
 # screenshot
 
 ![GUI(v0.2) screeshot](https://hustlei.github.io/software/QssStylesheetEditor/screenshot/en/QssStylesheetEditor_v1.5.png  "GUI(v0.2)")
 
-# Features
+# 功能简介
 
-+ Setting multiple x-axis values or y-axis values
-+ Display axes grid predict by x-ais and y-axis setting
-+ Scale background(graph) image
-+ Export csv format curve points data
-+ Switch different system themes (xp, vista etc.)
++ x坐标轴及y坐标轴均可以设置多个点
++ 根据坐标轴设置，推断坐标轴各个点位置，并以网格形式显示
++ 可以缩放曲线图图片
++ 导出 csv 格式数据
++ 支持切换系统主题(xp, vista etc.)
 
-# Platform
+# 支持的操作系统平台
 
 + Windows (maybe won't run on xp)
 + macOS
@@ -28,21 +30,19 @@ Digtize the graph(figure/chart) from image format, such as graph scanned from bo
 + UNIX
 
 
-# Install
+# 安装
 
-Follow the steps as below:
+1. 下载 GraphDigitizer 代码
+2. 运行 `pip install -r requirements.txt` 命令
+3. 运行 `python bootstrapper.py` or `python app.py` 命令打开软件
 
-1. download the GraphDigitizer Code.
-2. run `pip install -r requirements.txt` install dependencies.
-3. run `python bootstrapper.py` or `python app.py` to start app.
+# 使用步骤
 
-# Usage 
-
-1. import graph image
-2. scale graph(background) image
-3. setting x-axis and y-axis
-4. add curves
-5. export digitized data
+1. 导入曲线图背景
+2. 缩放曲线图（可以不缩放）
+3. 设置坐标轴
+4. 绘制曲线
+5. 导出数据
 
 # License
 You can use this software for free in open source projects that are licensed under the GPL. but there is an exception: if you only use it to generate qss file for commercial product, the product's source code can be shipped with whatever license you want.

@@ -109,7 +109,6 @@ class MainWinBase(QMainWindow):
                                            None,
                                            ':appres.img/select.png',
                                            checkable=True)
-        self.actions["select"].setChecked(True)
         self.actions["axesx"] = createAct(self.tr("Set x axis postions"),
                                           self.tr("Set x axis position"),
                                           None,
@@ -125,7 +124,7 @@ class MainWinBase(QMainWindow):
                                           None,
                                           ':appres.img/curve.png',
                                           checkable=True)
-        self.actions["del"] = createAct(self.tr("&del point or curve"), self.tr("delete"), QKeySequence.Delete,
+        self.actions["del"] = createAct(self.tr("&del point or axis"), self.tr("delete"), QKeySequence.Delete,
                                         ':appres.img/delete.png')
         self.actions["addcurve"] = createAct(self.tr("add a new curve"), self.tr("add a new curve"),
                                              None, ':appres.img/new.png')
@@ -173,6 +172,7 @@ class MainWinBase(QMainWindow):
         self.actions["config"] = createAct(self.tr("&Config"), self.tr("settings"), None, ":appres.img/config.png")
 
         self.actions["about"] = createAct(self.tr("&About"), self.tr("About"))
+        self.actions["help"] = createAct(self.tr("&Help"), self.tr("Help"))
 
         # self.exitAct.triggered.connect(qApp.exit)#等价于qApp.quit
         self.actions["exit"].triggered.connect(self.close)
@@ -232,6 +232,8 @@ class MainWinBase(QMainWindow):
 
         self.menus["Config"].addAction(self.actions["config"])
 
+        self.menus["Help"].addAction(self.actions["help"])
+        self.menus["Help"].addSeparator()
         self.menus["Help"].addAction(self.actions["about"])
 
         for m in self.menus.values():

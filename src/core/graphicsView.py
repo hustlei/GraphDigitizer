@@ -215,7 +215,9 @@ class GraphDigitGraphicsView(QGraphicsView):
                 item = items[0]
         if item:
             if isinstance(item, QGraphicsPointItem) and item.parentCurve:
-                self.changeCurrentCurve(item.parentCurve)
+                # self.changeCurrentCurve(item.parentCurve)
+                self.updateCurve(self.currentCurve, Qt.red)
+                self.updateCurvePoints(self.currentCurve)
                 self.sigModified.emit(True)
             elif isinstance(item, QGraphicsAxesItem):
                 if item.axis == "x":
@@ -416,6 +418,16 @@ class GraphDigitGraphicsView(QGraphicsView):
             self.scene.clearSelection()
             return
         # item = items[0]
+        item = self.scene.focusItem()
+        if not item:
+            items = self.scene.selectedItems()
+            if len(items) != 1:
+                return
+            else:
+                item = items[0]
+        if item:
+            if isinstance(item, QGraphicsPointItem) and item.parentCurve:
+                self.changeCurrentCurve(item.parentCurve)
 
     def deleteItem(self, item):
         """delete point on curve or axis object"""

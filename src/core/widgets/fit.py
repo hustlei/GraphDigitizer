@@ -30,7 +30,7 @@ class FitDockWidget(QDockWidget):
         self.toolbar = QToolBar(self)
         self.curveCombobox = QComboBox()
         self.curveCombobox.setMinimumWidth(150)
-        self.curveCombobox.setMinimumHeight(26)
+        self.curveCombobox.setMinimumHeight(22)
         self.fitBtn = QPushButton(self.tr("fit"))
         self.toolbar.addWidget(self.curveCombobox)
         self.toolbar.addWidget(self.fitBtn)

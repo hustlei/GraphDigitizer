@@ -194,12 +194,14 @@ class MainWin(MainWinBase):
         # help
         aboutText = "<b><center>" + self.title + "</center></b><br><br>"
         aboutText += self.tr(
-            "This software is a Tool for digitize graph(like figure scanned from book).<br><br>")
+            "This software is for digitizing graph(such as figures scanned from book).<br><br>")
         aboutText += self.tr(
             "author: lileilei<br>website: <a href='https://github.com/hustlei/GraphDigitizer'>https"
-            "://github.com/hustlei/GraphDigitizer</a><br><br>welcom communicate with me: hustlei@sina.cn ")
+            "://github.com/hustlei/GraphDigitizer</a><br><br>welcome anyone to communicate with me: hustlei@sina.cn ")
         aboutText += "<br>copyright &copy; 2020, lileilei@WuHan."
         self.actions["about"].triggered.connect(lambda: QMessageBox.about(self, "about", aboutText))
+        import webbrowser
+        self.actions["help"].triggered.connect(lambda: webbrowser.open("https://github.com/hustlei/GraphDigitizer"))
 
     def initAxesAndCurveTable(self):
         self.axesxTable.setColumnWidth(0, 120)

@@ -1,10 +1,8 @@
 
 # Todo
 
-1. change current curve when a new curve selected 
 1. double click to change curve name
 1. order the points table of current curve by ascending order of x axis
-1. fitting curves and interpolation
 
 for future
 
@@ -17,3 +15,5 @@ for future
 
 + 2020.05.06:fixed rename curve error
 + 2020.05.06:add delete curve tool
++ 2020.05.06:selected curve automatically be the current curve
++ 2020.05.05:fitting curve by polynamial

@@ -12,7 +12,7 @@ import os
 
 import numpy as np
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt, QItemSelectionModel, QModelIndex, QItemSelection
-from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap, QColor
+from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap, QColor, QKeyEvent
 from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem, QGraphicsLineItem,
                              QInputDialog, QLineEdit, QStyledItemDelegate, qApp)
 
@@ -286,6 +286,76 @@ class GraphDigitGraphicsView(QGraphicsView):
                     axisitem.setSelected(True)
                     return
 
+    def keyPressEvent(self, event: QKeyEvent) -> None:
+        super().keyPressEvent(event)
+        item = self.scene.focusItem()
+        if not item:
+            items = self.scene.selectedItems()
+            if len(items) != 1:
+                return
+            else:
+                item = items[0]
+        if item:
+            if isinstance(item, QGraphicsPointItem) and item.parentCurve:
+                if event.key() == Qt.Key_Up:
+                    item.setPos(item.pos().x(), item.pos().y() - 1)
+                elif event.key() == Qt.Key_Down:
+                    item.setPos(item.pos().x(), item.pos().y() + 1)
+                elif event.key() == Qt.Key_Left:
+                    item.setPos(item.pos().x() - 1, item.pos().y())
+                elif event.key() == Qt.Key_Right:
+                    item.setPos(item.pos().x() + 1, item.pos().y())
+                else:
+                    return
+                self.updateCurve(self.currentCurve, Qt.red)
+                self.updateCurvePoints(self.currentCurve)
+                self.sigModified.emit(True)
+            elif isinstance(item, QGraphicsAxesItem):
+                if item.axis == "x":
+                    if event.key() == Qt.Key_Left:
+                        item.moveBy(-1,0)
+                    elif event.key() == Qt.Key_Right:
+                        item.moveBy(1,0)
+                    else:
+                        return
+                    self.sigModified.emit(True)
+                    self.calGridCoord()
+                    self.updateGrid()
+
+                    self.axesxSelectModel.clearSelection()
+                    self.axesySelectModel.clearSelection()
+                    for i in range(self.axesxModel.rowCount()):
+                        if self.axesxModel.item(i, 0).data() is item:
+                            parent = QModelIndex()
+                            topleftindex = self.axesxModel.index(i, 0, parent)  # self.axesxModel.item(i,0).index()
+                            rightbottomindex = self.axesxModel.index(i, 1, parent)
+                            self.axesxSelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                         QItemSelectionModel.Select)
+                            self.axesxModel.item(i, 0).setText("x:{}".format(item.pos().x()))
+                            break
+
+                elif item.axis == "y":
+                    if event.key() == Qt.Key_Up:
+                        item.setPos(0, item.pos().y() - 1)
+                    elif event.key() == Qt.Key_Down:
+                        item.setPos(0, item.pos().y() + 1)
+                    else:
+                        return
+                    self.sigModified.emit(True)
+                    self.calGridCoord()
+                    self.updateGrid()
+
+                    self.axesxSelectModel.clearSelection()
+                    self.axesySelectModel.clearSelection()
+                    for i in range(self.axesyModel.rowCount()):
+                        if self.axesyModel.item(i, 0).data() is item:
+                            topleftindex = self.axesyModel.index(i, 0)  # self.axesxModel.item(i,0).index()
+                            rightbottomindex = self.axesyModel.index(i, 1)
+                            self.axesySelectModel.select(QItemSelection(topleftindex, rightbottomindex),
+                                                         QItemSelectionModel.Select)
+                            self.axesyModel.item(i, 0).setText("y:{}".format(item.pos().y()))
+                            break
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
         ptscene = self.mapToScene(event.pos())
@@ -395,7 +465,7 @@ class GraphDigitGraphicsView(QGraphicsView):
             ptitem.setPos(ptscene)
             ptitem.parentCurve = self.currentCurve
             ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
-                             | QGraphicsItem.ItemIsMovable)
+                            | QGraphicsItem.ItemIsMovable)
             self.scene.addItem(ptitem)
 
             i = pointInsertPosition(ptitem, self.pointObjs[self.currentCurve])
@@ -540,7 +610,6 @@ class GraphDigitGraphicsView(QGraphicsView):
                         self.sigModified.emit(True)
                 self.changeCurrentCurve(newname)
 
-
     def delCurve(self, name=None):
         if name is None:
             name = self.currentCurve
@@ -553,9 +622,9 @@ class GraphDigitGraphicsView(QGraphicsView):
             for i in range(self.curveModel.rowCount()):
                 item = self.curveModel.item(i, 1)
                 if item.text() == name:
-                    self.curveModel.removeRows(i,1)
+                    self.curveModel.removeRows(i, 1)
                     self.sigModified.emit(True)
-            if len(self.curveObjs)>0:
+            if len(self.curveObjs) > 0:
                 self.changeCurrentCurve(list(self.curveObjs.keys())[0])
             else:
                 self.currentCurve = None
@@ -919,7 +988,6 @@ class IconItem(QStandardItem):
         else:
             self.setIcon(self.iconoff)
         self.isOn = isOn
-
 
 # class IconDelegate(QStyledItemDelegate):
 #     def __init__(self, parent=None):

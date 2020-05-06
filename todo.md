@@ -1,6 +1,7 @@
 
 # Todo
 
+1. move points and axis by arrow key
 1. order the points table of current curve by ascending order of x axis
 
 for future

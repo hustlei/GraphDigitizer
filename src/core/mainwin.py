@@ -167,11 +167,13 @@ class MainWin(MainWinBase):
         self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(name=selectedCurve()))
         self.actions["delcurve"].triggered.connect(lambda: self.view.delCurve(name=selectedCurve()))
 
-        def changecurve(index):
+        def changecurvetable(index):
             if index.column() == 0:
                 self.view.changeCurrentCurve(self.view.curveModel.item(index.row(), 1).text())
+            elif index.column() == 1:
+                self.view.renameCurve(name=self.view.curveModel.item(index.row(),1).text())
 
-        self.curveTable.doubleClicked.connect(changecurve)
+        self.curveTable.doubleClicked.connect(changecurvetable)
 
         # show or not show background
         def hidegraph():

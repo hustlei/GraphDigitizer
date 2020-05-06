@@ -40,6 +40,10 @@ class Digi():
         self.gridLineWidth = 2
         self.gridColor = QColor("cornflowerblue") # Qt.gray
         self.gridOpacity = 1
+        # fit setting
+        self.fitx = [None, None, None]  # min max step
+        self.degree = 3
+        self.precision = 5
         # data for save and load, including point,curve coords got by mouse on graphicsview
         self.data = {}
         self.resetData()
@@ -58,6 +62,8 @@ class Digi():
             self.gridLineWidth = 1
             self.gridColor = QColor("cornflowerblue") # Qt.gray
             self.gridOpacity = 1
+            # fit setting
+            self.fitx = [None, None, None]  # min max step
 
         self.data["axesxObjs"] = {}  # [x1,x2,x3]
         self.data["axesyObjs"] = {}  # [y1,y2,y3]

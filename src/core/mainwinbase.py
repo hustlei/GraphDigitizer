@@ -8,6 +8,8 @@ from PyQt5.QtGui import QKeySequence, QIcon
 from PyQt5.QtWidgets import (QMainWindow, QApplication, QStyleFactory, QAction, QMenu, QToolBar, QWidget, QLabel,
                              QCheckBox, QComboBox, QTabWidget, QDockWidget, qApp, QSplitter, QTableView, QScrollArea,
                              QVBoxLayout)
+
+from core.widgets.fit import FitDockWidget
 from res import img_rc
 
 
@@ -150,6 +152,11 @@ class MainWinBase(QMainWindow):
                                                None,
                                                ":appres.img/view2col2right.png",
                                                checkable=True)
+        self.actions["showfit"] = createAct(self.tr("Show Fit Panel"),
+                                               self.tr("ShowCurve Fit Panel"),
+                                               None,
+                                               None,
+                                               checkable=True)
         self.actions["showcurves"].setChecked(True)
 
         self.actions["hidegraph"] = createAct(self.tr("Hide Graph"),
@@ -219,6 +226,7 @@ class MainWinBase(QMainWindow):
         self.menus["View"].addAction(self.actions["showgrid"])
         self.menus["View"].addSeparator()
         self.menus["View"].addAction(self.actions["showcurves"])
+        self.menus["View"].addAction(self.actions["showfit"])
         self.menus["View"].addSeparator()
 
 
@@ -309,7 +317,17 @@ class MainWinBase(QMainWindow):
         self.docks["curves"].setMinimumSize(QSize(200, 200))
         self.docks["curves"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
         self.addDockWidget(Qt.RightDockWidgetArea, self.docks["curves"])
+
+        self.docks["fit"] = FitDockWidget(self.tr("Poly Fit"))
+        self.docks["fit"].setMinimumSize(QSize(200, 200))
+        self.docks["fit"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.docks["fit"])
+        #self.tabifyDockWidget(self.docks["curves"], self.docks["fit"])
+        #self.docks["curves"].raise_()
+        self.docks["fit"].setVisible(False)
+
         self.docks["curves"].visibilityChanged.connect(self.actions["showcurves"].setChecked)
+        self.docks["fit"].visibilityChanged.connect(self.actions["showfit"].setChecked)
 
         self.docktabwidget = QTabWidget(self.docks["curves"])
         self.docks["curves"].setWidget(self.docktabwidget)
@@ -347,6 +365,7 @@ class MainWinBase(QMainWindow):
 
     def setupUiActions(self):
         self.actions["showcurves"].triggered.connect(self.docks["curves"].setVisible)
+        self.actions["showfit"].triggered.connect(self.docks["fit"].setVisible)
         self.themeCombo.currentTextChanged.connect(qApp.setStyle)
 
     # misc func

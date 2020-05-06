@@ -9,6 +9,7 @@
 for future
 
 1. settings
+    + export precision
 2. i18n
 3. installition
 

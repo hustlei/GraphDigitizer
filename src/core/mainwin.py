@@ -25,7 +25,7 @@ from .widgets.custom import QLineComboBox, QColorComboBox
 class MainWin(MainWinBase):
     def __init__(self):
         super(MainWin, self).__init__()
-        self.ver = "v0.20"
+        self.ver = "v0.30"
         self.title = "GraphDigitizer " + self.ver
         self.setWindowTitle(self.title)
         self.setWindowIcon(QIcon("res/app.ico"))
@@ -39,7 +39,7 @@ class MainWin(MainWinBase):
         self.setupActions()
         self.file = None
         self.new()
-
+        self.docks["fit"].initData(self.view)
 
     def slotMouseMovePoint(self, pt, ptscene):
         self.updatePixelCoordStatus(pt.x(), pt.y())
@@ -327,6 +327,7 @@ class MainWin(MainWinBase):
             self.view.proj.gridOpacity = spinboxOpacity.value()
             self.view.calGridCoord()
             self.view.updateGrid()
+            self.view.sigModified.emit(True)
 
     def export(self, file=None):
         if not file:
@@ -334,10 +335,16 @@ class MainWin(MainWinBase):
                                                   "CSV (*.csv);;all(*.*)")  # _是filefilter
         if file:
             if not self.view.axisvalid():
-                QMessageBox.information("export error", "there are axes with the same coordinate, please check, the exported data may be not accurate")
-            with open(file, "w", encoding="utf8") as f:
-                f.write(self.view.exportToCSVtext())
-            self.statusbar.showMessage(self.tr("export successfully."))
+                QMessageBox.information(self, "export error", self.tr(
+                    "there are axes with the same coordinate, please check, the exported data may be not accurate"),
+                                        QMessageBox.Ok,
+                                        QMessageBox.Ok)
+            try:
+                with open(file, "w", encoding="utf8") as f:
+                    f.write(self.view.exportToCSVtext())
+                self.statusbar.showMessage(self.tr("export successfully."))
+            except Exception as e:
+                self.statusbar.showMessage(self.tr("export failure:{}".format(e.args)))
         else:
             self.statusbar.showMessage(self.tr("export failure."))
 
@@ -378,6 +385,7 @@ class MainWin(MainWinBase):
                                 if k not in self.view.proj.__dict__:
                                     self.view.proj.__dict__[k] = v
                             self.view.load(self.view.proj)
+                            self.docks["fit"].initData(self.view)
                     self.file = file
                     self.view.sigModified.emit(False)
                     self.actions["select"].trigger()

@@ -759,6 +759,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         b = len(set(ys))
         if a != b:
             return False
+        return True
 
     def exportToCSVtext(self):
         """return text in csv format, like following:

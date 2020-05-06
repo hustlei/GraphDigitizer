@@ -12,7 +12,7 @@ def distToPoint(point, p):
     """return distance between point and p"""
     x, y = point
     x1, y1 = p
-    return ((x1 - x)**2 + (y1 - y)**2)**0.5
+    return ((x1 - x) ** 2 + (y1 - y) ** 2) ** 0.5
 
 
 def distToLine(point, p1, p2):
@@ -25,8 +25,8 @@ def distToLine(point, p1, p2):
     vec2x, vec2y = x2 - x1, y2 - y1
     # length of verctor and x for vecter
     modvec1x2 = abs(vec1x * vec2y - vec1y * vec2x)
-    modvec1 = (vec1x**2 + vec1y**2)**0.5
-    modvec2 = (vec2x**2 + vec2y**2)**0.5
+    modvec1 = (vec1x ** 2 + vec1y ** 2) ** 0.5
+    modvec2 = (vec2x ** 2 + vec2y ** 2) ** 0.5
     #
     sinx = modvec1x2 / modvec1 / modvec2
     #
@@ -70,7 +70,8 @@ def interp(xlist, ylist, newxlist, maxkind=2):
     else:
         kind = maxkind
     yarray = interpolate.UnivariateSpline(xlist, ylist, k=kind, s=0)(newxlist)
-    return list(np.round(yarray,5))
+    return list(np.round(yarray, 5))
+
 
 def pointInsertPosition(ptitem, ptitems):
     """get the nearest position for new point
@@ -119,6 +120,49 @@ def pointInsertPosition(ptitem, ptitems):
         if dist < lenth / 2:
             return index + 1
     return l
+
+
+def polyfit(x, y, degree=2):
+    x = np.array(x)
+    y = np.array(y)
+    # xnew=np.linspace(15,20,4)
+    # xnew = np.arange(0.5, 0.81, 0.005)
+    if degree >= len(x):
+        degree = len(x) - 1
+    if len(x) < 2 or degree < 1:
+        return [], []
+
+    polyrst = np.polyfit(x, y, degree)
+
+    error = np.abs(calPoly(polyrst, x) - y)
+
+    return polyrst, error
+
+
+def poly2str(poly, precision=5):
+    degree = len(poly) - 1
+    d = degree + 1
+    text = ""
+    for i in range(d):
+        if i == 0:
+            text += "{}x^{}".format(round(poly[i], precision), degree)
+        elif degree == i:
+            text += "{:+f}".format(round(poly[i], precision))
+        elif degree - i == 1:
+            text += "{:+f}x".format(round(poly[i], precision))
+        else:
+            text += "{:+f}x^{}".format(round(poly[i], precision), degree - i)
+    return text
+
+
+def calPoly(poly, x):
+    degree = len(poly) - 1
+    # def f1(rst,degree):
+    y = 0
+    d = degree + 1
+    for i in range(d):
+        y += poly[i] * x ** (degree - i)
+    return y
 
 
 if __name__ == "__main__":

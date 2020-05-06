@@ -165,6 +165,7 @@ class MainWin(MainWinBase):
 
         self.actions["addcurve"].triggered.connect(lambda: self.view.addCurve())
         self.actions["renamecurve"].triggered.connect(lambda: self.view.renameCurve(name=selectedCurve()))
+        self.actions["delcurve"].triggered.connect(lambda: self.view.delCurve(name=selectedCurve()))
 
         def changecurve(index):
             if index.column() == 0:

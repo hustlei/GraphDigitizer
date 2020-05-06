@@ -129,6 +129,8 @@ class MainWinBase(QMainWindow):
                                              None, ':appres.img/new.png')
         self.actions["renamecurve"] = createAct(self.tr("change curve name"), self.tr("change current curve name"),
                                                 None, ':appres.img/edit.png')
+        self.actions["delcurve"] = createAct(self.tr("&del curve"), self.tr("delete selected curve"), QKeySequence.Delete,
+                                        ':appres.img/delete.png')
 
         self.actions["scalegraph"] = createAct(self.tr("set graph image scale"), self.tr("scale the graph image(background)"), None,
                                                ":appres.img/resizeimage.png")
@@ -337,6 +339,7 @@ class MainWinBase(QMainWindow):
         self.curveTab.addWidget(self.pointsTable)
         self.curvePanelToolbar.addAction(self.actions["addcurve"])
         self.curvePanelToolbar.addAction(self.actions["renamecurve"])
+        self.curvePanelToolbar.addAction(self.actions["delcurve"])
 
     def createMainWidget(self):
         self.setCentralWidget(self.mainTabWidget)

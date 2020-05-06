@@ -206,12 +206,13 @@ class GraphDigitGraphicsView(QGraphicsView):
         pt = evt.pos()  # 获取鼠标坐标--view坐标
         self.sigMouseMovePoint.emit(pt, self.mapToScene(pt))  # 发送鼠标位置
         QGraphicsView.mouseMoveEvent(self, evt)
-        #item = self.scene.focusItem()
-        items = self.scene.selectedItems()
-        if len(items) != 1:
-            return
-        else:
-            item = items[0]
+        item = self.scene.focusItem()
+        if not item:
+            items = self.scene.selectedItems()
+            if len(items) != 1:
+                return
+            else:
+                item = items[0]
         if item:
             if isinstance(item, QGraphicsPointItem) and item.parentCurve:
                 self.changeCurrentCurve(item.parentCurve)
@@ -391,8 +392,8 @@ class GraphDigitGraphicsView(QGraphicsView):
             ptitem.linewidth = 1
             ptitem.setPos(ptscene)
             ptitem.parentCurve = self.currentCurve
-            # ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
-            #                 | QGraphicsItem.ItemIsMovable)
+            ptitem.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
+                             | QGraphicsItem.ItemIsMovable)
             self.scene.addItem(ptitem)
 
             i = pointInsertPosition(ptitem, self.pointObjs[self.currentCurve])
@@ -522,6 +523,29 @@ class GraphDigitGraphicsView(QGraphicsView):
                     if item.text() == name:
                         item.setText(newname)
                         self.sigModified.emit(True)
+                self.changeCurrentCurve(newname)
+
+
+    def delCurve(self, name=None):
+        if name is None:
+            name = self.currentCurve
+        if name not in self.curveObjs:
+            return
+        try:
+            self.curveObjs.pop(name)
+            self.pointObjs.pop(name)
+
+            for i in range(self.curveModel.rowCount()):
+                item = self.curveModel.item(i, 1)
+                if item.text() == name:
+                    self.curveModel.removeRows(i,1)
+                    self.sigModified.emit(True)
+            if len(self.curveObjs)>0:
+                self.changeCurrentCurve(list(self.curveObjs.keys())[0])
+            else:
+                self.currentCurve = None
+        except:
+            pass
 
     def showCurve(self, curvename, visible=True):
         for pts in self.pointObjs[curvename]:

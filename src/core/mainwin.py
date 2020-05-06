@@ -171,7 +171,7 @@ class MainWin(MainWinBase):
             if index.column() == 0:
                 self.view.changeCurrentCurve(self.view.curveModel.item(index.row(), 1).text())
             elif index.column() == 1:
-                self.view.renameCurve(name=self.view.curveModel.item(index.row(),1).text())
+                self.view.renameCurve(name=self.view.curveModel.item(index.row(), 1).text())
 
         self.curveTable.doubleClicked.connect(changecurvetable)
 

@@ -14,7 +14,7 @@ import numpy as np
 from PyQt5.QtCore import pyqtSignal, QRectF, QPoint, QPointF, Qt, QItemSelectionModel, QModelIndex, QItemSelection
 from PyQt5.QtGui import QStandardItemModel, QStandardItem, QPainter, QIcon, QPen, QPixmap, QColor
 from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsPixmapItem, QGraphicsItem, QGraphicsLineItem,
-                             QInputDialog, QLineEdit)
+                             QInputDialog, QLineEdit, QStyledItemDelegate, qApp)
 
 from core.enums import OpMode, PointType, RandItem
 from core.graphicsItems import QGraphicsPointItem, QGraphicsAxesItem
@@ -515,6 +515,9 @@ class GraphDigitGraphicsView(QGraphicsView):
         item3.setAutoTristate(False)
         item3.setEditable(False)
         item3.setCheckState(Qt.Checked)
+        item1.setTextAlignment(Qt.AlignCenter)
+        item2.setTextAlignment(Qt.AlignCenter)
+        item3.setTextAlignment(Qt.AlignCenter)
         self.curveModel.appendRow([item1, item2, item3])
         self.changeCurrentCurve(name)
         self.sigModified.emit(True)
@@ -916,3 +919,21 @@ class IconItem(QStandardItem):
         else:
             self.setIcon(self.iconoff)
         self.isOn = isOn
+
+
+# class IconDelegate(QStyledItemDelegate):
+#     def __init__(self, parent=None):
+#         super().__init__(parent)
+#
+#     def paint(painter, option, index):  # QStyleOptionViewItem QModelIndex
+#         # 判断是不是icon所在的index
+#         if index.column() == 0:
+#             QStyledItemDelegate.paint(painter, option, index)
+#
+#             QPixmap
+#             pixmap = QPixmap("icon.png")
+#             qApp.style().drawItemPixmap(painter, option.rect, Qt.AlignCenter, QPixmap(pixmap))
+
+# tableWidget->setItemDelegate(new IconDelegate(this));
+# tableWidget->setItemDelegateForColumn(colum, new IconDelegate(this));
+# tableWidget->setItemDelegateForRow(row, new IconDelegate(this));

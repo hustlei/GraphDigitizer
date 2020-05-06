@@ -17,6 +17,7 @@ Digtize the graph(figure/chart) from image format, such as graph scanned from bo
 + Setting multiple x-axis values or y-axis values
 + Display axes grid predict by x-ais and y-axis setting
 + Scale background(graph) image
++ fiting any digitized curve by polynomials
 + Export csv format curve points data
 + Switch different system themes (xp, vista etc.)
 

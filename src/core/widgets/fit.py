@@ -83,10 +83,12 @@ class FitDockWidget(QDockWidget):
         if len(self.view.pointObjs) < 1:
             return
 
+        last = self.curveCombobox.currentText()
         self.curveCombobox.clear()
         curvenames = list(self.view.curveObjs.keys())
         curvenames.reverse()
         self.curveCombobox.addItems(curvenames)
+        self.curveCombobox.setCurrentText(last)
 
         for obj in self.fitCurveObjs:
             self.view.scene.removeItem(obj)
@@ -165,14 +167,3 @@ class FitDockWidget(QDockWidget):
 
         self.outTextBox.setText(text)
         self.view.sigModified.emit(True)
-
-
-if __name__ == "__main__":
-    from PyQt5.QtWidgets import *
-    import sys
-
-    app = QApplication(sys.argv)
-    win = QMainWindow()
-    win.addDockWidget(FitDockWidget())
-    win.show()
-    sys.exit(app.exec_())

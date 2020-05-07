@@ -107,7 +107,7 @@ class FitDockWidget(QDockWidget):
         curve = self.curveCombobox.currentText().strip()
         if self.view is None:
             return
-        if curve not in self.view.pointObjs or len(self.view.pointObjs) < 2:
+        if curve not in self.view.pointObjs or len(self.view.pointObjs[curve]) < 2:
             return
 
         xs = []

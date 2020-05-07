@@ -85,7 +85,6 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def load(self, proj):
         # image # only for load
-        self.setGraphImage(proj.img)
         self.scaleGraphImage(proj.imgScale)
         # axes
         xadded = []
@@ -287,7 +286,7 @@ class GraphDigitGraphicsView(QGraphicsView):
                     return
 
     def keyPressEvent(self, event: QKeyEvent) -> None:
-        super().keyPressEvent(event)
+        # super().keyPressEvent(event)
         item = self.scene.focusItem()
         if not item:
             items = self.scene.selectedItems()
@@ -658,6 +657,8 @@ class GraphDigitGraphicsView(QGraphicsView):
         # self.viewport().update()
 
         if not isinstance(name, str):
+            return
+        if name not in self.pointObjs:
             return
 
         lastitems = []

@@ -550,7 +550,6 @@ class GraphDigitGraphicsView(QGraphicsView):
         if not isinstance(imgfile, str):
             self.graphicsPixmapItem.setPixmap(QPixmap())
         elif os.path.exists(imgfile):
-            self.proj.img = imgfile
             img = QPixmap(imgfile)
             self.graphicsPixmapItem.setPixmap(img)
             self.scene.setSceneRect(0, 0, img.width(), img.height())

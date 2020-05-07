@@ -31,7 +31,7 @@ class Digi():
     def __init__(self, imgpath=""):
         # data input directly by user
         # chart image
-        self.img = None  # QPixmap, set by setImgpath
+        # self.img = None  # QPixmap, set by setImgpath
         self.imgScale = 1
         # grid
         self.gridx = [None, None, None]  # min max step
@@ -53,7 +53,7 @@ class Digi():
 
     def resetData(self, newproject=False):
         if newproject:
-            self.img = None  # QPixmap, set by setImgpath
+            # self.img = None  # QPixmap, set by setImgpath
             self.imgScale = 1
             # grid
             self.gridx = [None, None, None]  # min max step

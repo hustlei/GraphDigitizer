@@ -379,10 +379,11 @@ class MainWin(MainWinBase):
         if file:
             try:
                 if self.fileop.open(file):
+                    self.new()
                     self.view.setGraphImage(self.fileop.imgfile)
+                    # self.importimage(self.fileop.imgfile)
                     if os.path.exists(self.fileop.datafile):
                         with open(self.fileop.datafile, 'rb') as f:
-                            self.new()
                             self.view.proj = dill.load(f)
                             tmp = Digi()  # update old project format to new version
                             for k, v in tmp.__dict__.items():

@@ -40,6 +40,7 @@ class MainWin(MainWinBase):
         self.file = None
         self.new()
         self.docks["fit"].initData(self.view)
+        self.view.sigNewCurveAdded.connect(self.docks["fit"].reset)
 
     def slotMouseMovePoint(self, pt, ptscene):
         self.updatePixelCoordStatus(pt.x(), pt.y())
@@ -54,10 +55,12 @@ class MainWin(MainWinBase):
     # action funcs
     def new(self):
         """create new GraphDigitGrapicsView"""
+        self.docks["fit"].reset()
         self.view.resetview()
         self.initAxesAndCurveTable()
         self.file = None
         self.view.sigModified.emit(False)
+        self.setWindowTitle(self.title)
 
     def importimage(self, file=None):  # _参数用于接收action的event参数,bool类型
         if not file:
@@ -368,6 +371,7 @@ class MainWin(MainWinBase):
                 dill.dump(self.view.proj, datafile)
             self.fileop.save(file)
             self.view.sigModified.emit(False)
+            self.setWindowTitle(self.title+"  -  "+self.file)
             self.statusbar.showMessage(self.tr("save successfully."))
         else:
             self.statusbar.showMessage(self.tr("save failure."))
@@ -394,6 +398,7 @@ class MainWin(MainWinBase):
                     self.file = file
                     self.view.sigModified.emit(False)
                     self.actions["select"].trigger()
+                    self.setWindowTitle(self.title+"  -  "+self.file)
                     self.statusbar.showMessage(self.tr("open successfully."))
                 else:
                     self.statusbar.showMessage(self.tr("open failure"))

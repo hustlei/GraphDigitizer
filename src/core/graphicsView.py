@@ -26,6 +26,7 @@ from core.utils.algor import *
 class GraphDigitGraphicsView(QGraphicsView):
     sigMouseMovePoint = pyqtSignal(QPoint, QPointF)
     sigModified = pyqtSignal(bool)
+    sigNewCurveAdded = pyqtSignal()
 
     # 自定义信号sigMouseMovePoint，当鼠标移动时，在mouseMoveEvent事件中，将当前的鼠标位置发送出去
     # QPoint--传递的是view坐标
@@ -146,6 +147,7 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def resetview(self):
         self.setGraphImage(None)
+        self.scaleGraphImage(1)
         for obj in self.axesxObjs:
             self.scene.removeItem(obj)
         self.axesxObjs = {}
@@ -547,7 +549,10 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def setGraphImage(self, imgfile):
         if not isinstance(imgfile, str):
-            self.graphicsPixmapItem.setPixmap(QPixmap())
+            img = QPixmap(800,600)
+            img.fill(QColor("#EEE"))
+            self.graphicsPixmapItem.setPixmap(img)
+            self.scene.setSceneRect(0, 0, 800, 600)
         elif os.path.exists(imgfile):
             img = QPixmap(imgfile)
             self.graphicsPixmapItem.setPixmap(img)
@@ -589,6 +594,7 @@ class GraphDigitGraphicsView(QGraphicsView):
         self.curveModel.appendRow([item1, item2, item3])
         self.changeCurrentCurve(name)
         self.sigModified.emit(True)
+        self.sigNewCurveAdded.emit()
 
     def renameCurve(self, newname=None, name=None):
         if name not in self.curveObjs:

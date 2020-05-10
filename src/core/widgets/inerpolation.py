@@ -10,34 +10,35 @@ from PyQt5.QtWidgets import QDockWidget, QVBoxLayout, QToolBar, QComboBox, QSpin
     QLineEdit, QFormLayout, QTextEdit, QPushButton, QWidget, QGraphicsLineItem
 
 from core.utils import str2num
-from core.utils.algor import polyfit, calPoly, poly2str
+from core.utils.algor import polyfit, calPoly, poly2str, interp
 
 
-class FitWidget(QWidget):
+class InterpWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.fitCurveObjs = []
+        self.interpCurveObjs = []
         self.view = None
         self.initData(self.view)
         self.presicion = 5
         #self.visibilityChanged.connect(self.visibileChanged)
-        self.fitBtn.clicked.connect(self.fit)
+        self.fitBtn.clicked.connect(self.interp)
 
     def initUI(self):
         self.toolbar = QToolBar(self)
         self.curveCombobox = QComboBox()
         self.curveCombobox.setMinimumWidth(150)
         self.curveCombobox.setMinimumHeight(22)
-        self.fitBtn = QPushButton(self.tr("fit"))
+        self.fitBtn = QPushButton(self.tr("Interpolate"))
         self.toolbar.addWidget(self.curveCombobox)
         self.toolbar.addWidget(self.fitBtn)
-        self.degreeSpinBox = QSpinBox()
+        self.degreeComboBox = QComboBox()
+        self.degreeComboBox.addItems(["1","2","3","4","5"])
         self.minXTextBox = QLineEdit()
         self.maxXTextBox = QLineEdit()
         self.stepXTextBox = QLineEdit()
         formlayout = QFormLayout()
-        formlayout.addRow(self.tr("fit degree"), self.degreeSpinBox)
+        formlayout.addRow(self.tr("interpolation order"), self.degreeComboBox)
         formlayout.addRow(self.tr("x min"), self.minXTextBox)
         formlayout.addRow(self.tr("x max"), self.maxXTextBox)
         formlayout.addRow(self.tr("x step"), self.stepXTextBox)
@@ -67,8 +68,8 @@ class FitWidget(QWidget):
             self.maxXTextBox.setText(str(self.view.proj.fitx[1]))
         if self.view.proj.fitx[2] is not None:
             self.stepXTextBox.setText(str(self.view.proj.fitx[2]))
-        if self.view.proj.degree:
-            self.degreeSpinBox.setValue(self.view.proj.degree)
+        if self.view.proj.degree and self.view.proj.degree in [1,2,3,4,5]:
+            self.degreeComboBox.setCurrentText(str(self.view.proj.degree))
         if self.view.proj.precision:
             self.presicion = self.view.proj.precision
 
@@ -85,9 +86,9 @@ class FitWidget(QWidget):
         self.curveCombobox.addItems(curvenames)
         self.curveCombobox.setCurrentText(last)
 
-        for obj in self.fitCurveObjs:
+        for obj in self.interpCurveObjs:
             self.view.scene.removeItem(obj)
-        self.fitCurveObjs.clear()
+        self.interpCurveObjs.clear()
 
         self.outTextBox.setText("")
 
@@ -97,7 +98,7 @@ class FitWidget(QWidget):
     def visibileChanged(self, v):
         self.reset()
 
-    def fit(self):
+    def interp(self):
         self.reset()
         curve = self.curveCombobox.currentText().strip()
         if self.view is None:
@@ -132,33 +133,25 @@ class FitWidget(QWidget):
 
         xnew = np.arange(xmin, xmax + xstep / 2, xstep)
 
-        degree = self.degreeSpinBox.value()
+        degree = int(self.degreeComboBox.currentText())
         self.view.proj.degree = degree
         self.view.proj.precision = self.presicion
 
-        poly, error = polyfit(xs, ys, degree)
-        if poly == []:
-            return
-        ynew = calPoly(poly, xnew)
+        ynew = interp(xs,ys,xnew,degree)
 
         xpos, ypos = self.view.coordToPoint(xnew, ynew)
         for i in range(1, len(xpos)):
             line = QGraphicsLineItem(xpos[i - 1], ypos[i - 1], xpos[i], ypos[i])
             line.setZValue(10)
             line.setPen(QPen(Qt.yellow, 2, Qt.SolidLine))
-            self.fitCurveObjs.append(line)
+            self.interpCurveObjs.append(line)
             self.view.scene.addItem(line)
 
         self.minXTextBox.setText(str(xmin))
         self.maxXTextBox.setText(str(xmax))
         self.stepXTextBox.setText(str(xstep))
 
-        text = "fitted polynomial:\n"
-        text += poly2str(poly) + "\n\n"
-        text += "max err:" + str(np.max(error)) + "\n\n"
-        text += "fitted points:\n" #   x  ,   y\n"
-        # for x, y in zip(xnew, ynew):
-        #     text += "{},{}\n".format(round(x,self.presicion), round(y,self.presicion))
+        text = "interpolation points:\n\n"
         self.outTextBox.setText(text)
 
         cursor = QTextCursor(self.outTextBox.textCursor())

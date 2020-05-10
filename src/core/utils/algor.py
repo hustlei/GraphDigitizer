@@ -27,10 +27,11 @@ def distToLine(point, p1, p2):
     modvec1x2 = abs(vec1x * vec2y - vec1y * vec2x)
     modvec1 = (vec1x ** 2 + vec1y ** 2) ** 0.5
     modvec2 = (vec2x ** 2 + vec2y ** 2) ** 0.5
-    #
-    sinx = modvec1x2 / modvec1 / modvec2
-    #
-    dist = modvec1 * sinx
+    if modvec1 < 0.0000001 or modvec2 < 0.0000001:
+        dist = modvec1
+    else:
+        sinx = modvec1x2 / modvec1 / modvec2
+        dist = modvec1 * sinx
     return dist
 
 

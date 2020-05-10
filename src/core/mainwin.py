@@ -419,7 +419,8 @@ class MainWin(MainWinBase):
             ret = msg.exec_()
             if ret in (QMessageBox.Save, QMessageBox.Yes):
                 self.save()
-                e.ignore()
+                self.fileop.close()
+                qApp.exit()
             elif ret in (QMessageBox.Discard, QMessageBox.No):
                 # self.updateSpecialConfig()
                 # self.config.save()

@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QMainWindow, QApplication, QStyleFactory, QAction, 
                              QCheckBox, QComboBox, QTabWidget, QDockWidget, qApp, QSplitter, QTableView, QScrollArea,
                              QVBoxLayout)
 
-from core.widgets.fit import FitDockWidget
+from core.widgets.fitdock import FitDockWidget
 from res import img_rc
 
 
@@ -151,8 +151,8 @@ class MainWinBase(QMainWindow):
                                                None,
                                                ":appres.img/view2col2right.png",
                                                checkable=True)
-        self.actions["showfit"] = createAct(self.tr("Show Fit Panel"),
-                                               self.tr("ShowCurve Fit Panel"),
+        self.actions["showfit"] = createAct(self.tr("Show Fit&&Interpolation Panel"),
+                                               self.tr("ShowCurve Fit&Interpolation Panel"),
                                                None,
                                                None,
                                                checkable=True)
@@ -318,12 +318,12 @@ class MainWinBase(QMainWindow):
         self.docks["curves"] = QDockWidget(self.tr("Axes and Curves"))
         self.docks["curves"].setMinimumSize(QSize(200, 200))
         self.docks["curves"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.docks["curves"])
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.docks["curves"])
 
         self.docks["fit"] = FitDockWidget(self.tr("Poly Fit"))
         self.docks["fit"].setMinimumSize(QSize(200, 200))
         self.docks["fit"].setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.docks["fit"])
+        self.addDockWidget(Qt.RightDockWidgetArea, self.docks["fit"])
         #self.tabifyDockWidget(self.docks["curves"], self.docks["fit"])
         #self.docks["curves"].raise_()
         self.docks["fit"].setVisible(False)

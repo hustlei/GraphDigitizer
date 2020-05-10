@@ -33,7 +33,7 @@ class GraphDigitGraphicsView(QGraphicsView):
     def __init__(self, parent=None):
         super(GraphDigitGraphicsView, self).__init__(parent)
         # scene
-        rect = QRectF(0, 0, 800, 600)
+        rect = QRectF(0, 0, 300, 400)
         self.scene = QGraphicsScene(rect)  # 创建场景 参数：场景区域
         self.setScene(self.scene)  # 给视图窗口设置场景
         # image
@@ -97,6 +97,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                 xadded.append(xpos)
             item = QGraphicsAxesItem(0, self.scene.sceneRect().y(), 0,
                                      self.scene.sceneRect().y() + self.scene.sceneRect().height())
+            item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
+                                | QGraphicsItem.ItemIsMovable)
             item.setPos(xpos, 0)
             item.axis = "x"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
@@ -114,6 +116,8 @@ class GraphDigitGraphicsView(QGraphicsView):
                 yadded.append(ypos)
             item = QGraphicsAxesItem(self.scene.sceneRect().x(), 0,
                                      self.scene.sceneRect().x() + self.scene.sceneRect().width(), 0)
+            item.setFlags(QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemIsFocusable
+                          | QGraphicsItem.ItemIsMovable)
             item.setPos(0, ypos)
             item.axis = "y"
             item.setPen(QPen(Qt.red, 1, Qt.DashLine))
@@ -549,10 +553,10 @@ class GraphDigitGraphicsView(QGraphicsView):
 
     def setGraphImage(self, imgfile):
         if not isinstance(imgfile, str):
-            img = QPixmap(800,600)
+            img = QPixmap(300, 400)
             img.fill(QColor("#EEE"))
             self.graphicsPixmapItem.setPixmap(img)
-            self.scene.setSceneRect(0, 0, 800, 600)
+            self.scene.setSceneRect(0, 0, 300, 400)
         elif os.path.exists(imgfile):
             img = QPixmap(imgfile)
             self.graphicsPixmapItem.setPixmap(img)
